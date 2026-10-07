@@ -1,0 +1,1922 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>High Ground HQ — demo</title>
+<style>:root {
+  --bg: #0e1218; --panel: #151b25; --panel2: #1a2230; --line: #243040;
+  --text: #e9eef5; --muted: #8d99ab; --accent: #f0a22e; --accent-d: #c77f16;
+  --green: #3ecf8e; --red: #f26d6d; --blue: #5aa9ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+#app { display: flex; height: 100vh; }
+#sidebar { width: 228px; background: var(--panel); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; padding: 18px 14px; }
+.brand { display: flex; gap: 10px; align-items: center; margin-bottom: 22px; }
+.brand-mark { width: 40px; height: 40px; border-radius: 10px; background: var(--accent);
+  color: #14100a; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.brand-name { font-weight: 700; }
+.brand-sub { color: var(--muted); font-size: 12px; }
+#nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+#nav button { background: none; border: none; color: var(--muted); text-align: left;
+  padding: 10px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+#nav button:hover { background: var(--panel2); color: var(--text); }
+#nav button.active { background: var(--panel2); color: var(--accent); font-weight: 600; }
+.side-foot { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.integ { display: flex; align-items: center; gap: 8px; }
+.integ em { font-style: normal; opacity: .7; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.ok { background: var(--green); } .dot.no { background: #5a6577; }
+.ver { margin-top: 6px; opacity: .6; }
+main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#topbar { display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid var(--line); }
+#topbar h1 { margin: 0; font-size: 20px; }
+#topbar-actions { display: flex; gap: 8px; }
+#view { padding: 24px; overflow-y: auto; flex: 1; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.card .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.card .v { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.card .v.amber { color: var(--accent); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 18px; margin-bottom: 18px; }
+.panel h2 { margin: 0 0 12px; font-size: 16px; }
+.panel h3 { margin: 18px 0 8px; font-size: 14px; color: var(--accent); }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+tr:hover td { background: var(--panel2); }
+button, .btn { background: var(--accent); color: #14100a; border: none; border-radius: 8px;
+  padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+button:hover, .btn:hover { background: var(--accent-d); }
+button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+button.small { padding: 5px 10px; font-size: 12px; }
+button.danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+input, select, textarea { background: var(--bg); border: 1px solid var(--line); color: var(--text);
+  border-radius: 8px; padding: 9px 12px; font-size: 14px; width: 100%; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+textarea { min-height: 120px; font-family: inherit; resize: vertical; }
+label { display: block; color: var(--muted); font-size: 12px; margin: 10px 0 4px;
+  text-transform: uppercase; letter-spacing: .05em; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 14px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.b-lead { background: #2a3a55; color: var(--blue); }
+.b-contacted { background: #3a2f1a; color: var(--accent); }
+.b-customer { background: #173a2c; color: var(--green); }
+.b-estimate { background: #2a3a55; color: var(--blue); }
+.b-in_progress, .b-supplement { background: #3a2f1a; color: var(--accent); }
+.b-completed, .b-approved, .b-sent { background: #173a2c; color: var(--green); }
+.b-draft, .b-pending { background: #333c4d; color: var(--muted); }
+.b-email { background: #2a3a55; color: var(--blue); }
+.b-text { background: #173a2c; color: var(--green); }
+.b-call { background: #3a2f1a; color: var(--accent); }
+.row-actions { display: flex; gap: 6px; }
+.muted { color: var(--muted); }
+.mt { margin-top: 14px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+.note { background: var(--panel2); border-left: 3px solid var(--accent); padding: 10px 14px;
+  border-radius: 0 8px 8px 0; color: var(--muted); font-size: 13px; margin: 12px 0; }
+.total-row td { font-weight: 700; border-top: 2px solid var(--line); }
+.miss { color: var(--accent); font-weight: 600; }
+.covered { color: var(--green); }
+.toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.toolbar input { width: auto; min-width: 240px; }
+.steps { display: flex; gap: 8px; margin-bottom: 18px; }
+.steps button { flex: 1; }
+.steps button.done { background: #173a2c; color: var(--green); }
+pre.copybox { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px; white-space: pre-wrap; font-size: 13px; max-height: 300px; overflow-y: auto; }
+
+/* ---- login screen ---- */
+.login-panel { max-width: 420px; margin: 8vh auto; }
+.form-err { color: var(--red); font-size: 13px; min-height: 20px; margin: 8px 0; }
+.form-err:empty { display: none; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.small { font-size: 12px; }
+button.primary, .btn.primary { background: var(--accent); color: #14100a; }
+
+/* ---- phones (<=720px): sidebar becomes a compact top bar, everything stacks ---- */
+@media (max-width: 720px) {
+  #app { flex-direction: column; height: auto; min-height: 100vh; }
+  #sidebar { width: 100%; flex-direction: row; align-items: center; gap: 10px;
+    padding: 10px 12px; border-right: none; border-bottom: 1px solid var(--line); }
+  .brand { margin-bottom: 0; flex-shrink: 0; }
+  .brand-sub { display: none; }
+  .brand-mark { width: 32px; height: 32px; font-size: 13px; }
+  .brand-name { font-size: 14px; }
+  #nav { flex-direction: row; overflow-x: auto; gap: 6px; flex: 1; padding-bottom: 2px; }
+  #nav button { white-space: nowrap; padding: 10px 12px; flex-shrink: 0; }
+  .side-foot { display: none; }
+  main { width: 100%; }
+  #topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+  #topbar h1 { font-size: 18px; }
+  #topbar-actions { width: 100%; }
+  #topbar-actions button { flex: 1 1 auto; }
+  #view { padding: 16px; }
+  .panel { overflow-x: auto; }
+  table { min-width: 560px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar input, .toolbar select, .toolbar button { width: 100%; min-width: 0; }
+  input, select, textarea { width: 100%; min-height: 44px; font-size: 16px; }
+  button, .btn { min-height: 44px; }
+  .row-actions { flex-wrap: wrap; }
+  .row-actions button { flex: 1 1 auto; }
+  .steps { flex-direction: column; }
+  .form-grid { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .login-panel { margin: 4vh auto; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">HG</div>
+      <div>
+        <div class="brand-name">High Ground HQ</div>
+        <div class="brand-sub">Roofing CRM</div>
+      </div>
+    </div>
+    <nav id="nav">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="leads">Leads</button>
+      <button data-view="jobs">Jobs</button>
+      <button data-view="estimates">Estimates</button>
+      <button data-view="comms">Comms</button>
+      <button data-view="campaigns">Campaigns</button>
+      <button data-view="settings">Settings</button>
+    </nav>
+    <div class="side-foot">
+      <div class="integ"><span class="dot ok"></span>Gmail drafts <em>via Muse</em></div>
+      <div class="integ"><span class="dot no"></span>Twilio <em>owner adds</em></div>
+      <div class="integ"><span class="dot no"></span>Skip trace <em>owner adds</em></div>
+      <div class="ver">demo · fake data</div>
+    </div>
+  </aside>
+  <main>
+    <header id="topbar">
+      <h1 id="view-title">Dashboard</h1>
+      <div id="topbar-actions"></div>
+    </header>
+    <section id="view"></section>
+  </main>
+</div>
+<script src="config.js"></script>
+<script src="db-cloud.js"></script>
+<script src="supplement/engine.js"></script>
+<script src="supplement/parsers.js"></script>
+<script src="app.js"></script>
+<script src="views.js"></script>
+<script src="views2.js"></script>
+
+<script>window.HQ_CONFIG = { SUPABASE_URL: "https://demo.invalid", SUPABASE_ANON_KEY: "demo" };</script>
+<!-- sanitized in-memory backend (demo only) -->
+<script>// High Ground HQ — in-memory Supabase mock for cloud smoke tests (dev/QA only).
+// Exposes window.supabaseLib = { createClient }, which renderer/db-cloud.js
+// prefers over the CDN build. Seeded with the real seed-data shape.
+// NOT shipped: only loaded by test/cloud-smoke.html.
+(function () {
+  'use strict';
+
+  var PRICE_BOOK = '{"redeck": 95, "shingles": 295, "ridge_cap": 6.5}';
+
+  var store = {
+    settings: [
+      { key: 'company_name', value: 'High Ground Roofing & Construction' },
+      { key: 'company_phone', value: '(405) 252-0058' },
+      { key: 'company_email', value: 'josh@highgroundokc.com' },
+      { key: 'price_book', value: PRICE_BOOK },
+      { key: 'twilio_sid', value: '' },
+    ],
+    leads: [
+      { id: 1, name: 'Demo Homeowner', phone: '', email: 'demo.homeowner@example.com', address: '4812 N Demo Blvd', city: 'Oklahoma City', zip: '73120', source: 'referral', status: 'customer', skip_trace_status: 'not_run', notes: 'Claim DEMO-000123', created_at: '2026-10-01T10:00:00Z' },
+      { id: 2, name: 'Sample Client', phone: '', email: '', address: '', city: 'Oklahoma City', zip: '', source: 'referral', status: 'customer', skip_trace_status: 'not_run', notes: 'Sept 2026 roof job', created_at: '2026-10-01T10:00:00Z' },
+      { id: 3, name: 'SAMPLE - Alex Rivera', phone: '(405) 555-0142', email: 'alex.r@example.com', address: '1234 W Sample St', city: 'Oklahoma City', zip: '73120', source: 'door_knock', status: 'lead', skip_trace_status: 'not_run', notes: 'Sample', created_at: '2026-10-02T10:00:00Z' },
+    ],
+    jobs: [
+      { id: 1, lead_id: 1, address: '4812 N Demo Blvd, Oklahoma City, OK 73120', status: 'supplement', claim_number: 'DEMO-000123', carrier: 'Progressive', adjuster: 'Demo Adjuster', date_of_loss: '', measurements_json: '{}', eagleview_note: '', notes: '', created_at: '2026-10-01T11:00:00Z' },
+      { id: 2, lead_id: 2, address: 'Oklahoma City, OK', status: 'completed', claim_number: '', carrier: '', adjuster: '', date_of_loss: '', measurements_json: '{}', eagleview_note: '', notes: '', created_at: '2026-10-01T11:00:00Z' },
+    ],
+    estimates: [],
+    drafts: [
+      { id: 1, kind: 'email', lead_id: 1, job_id: null, subject: 'Supplement for claim DEMO-000123', body: 'Hi there, ...', status: 'draft', created_at: '2026-10-03T10:00:00Z' },
+      { id: 2, kind: 'text', lead_id: 3, job_id: null, subject: '', body: 'Hi Sarah, ...', status: 'draft', created_at: '2026-10-03T10:00:00Z' },
+    ],
+    campaigns: [],
+    campaign_targets: [],
+  };
+
+  // FK map for embedded selects: table -> { fkCol: [refTable] }
+  var FKS = {
+    jobs: { lead_id: 'leads' },
+    estimates: { job_id: 'jobs' },
+    drafts: { lead_id: 'leads', job_id: 'jobs' },
+    campaigns: { job_id: 'jobs' },
+    campaign_targets: { campaign_id: 'campaigns', draft_id: 'drafts' },
+  };
+
+  function likeToReg(src, pat, ci) {
+    var esc = String(pat).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.');
+    return new RegExp('^' + esc + '$', ci ? 'i' : '');
+  }
+
+  function pick(obj, cols) {
+    if (!cols) return Object.assign({}, obj);
+    var parts = cols.split(',').map(function (c) { return c.trim(); });
+    var out = {};
+    if (parts.indexOf('*') >= 0) Object.assign(out, obj); // real PostgREST '*' = all columns
+    parts.forEach(function (c) {
+      if (c && c !== '*' && !/\(/.test(c)) out[c] = obj[c];
+    });
+    return out;
+  }
+
+  function embed(row, table, select) {
+    var out = pick(Object.assign({}, row), select);
+    var re = /(\w+)\(([^)]+)\)/g, m;
+    var fks = FKS[table] || {};
+    while ((m = re.exec(select || ''))) {
+      var refTable = m[1], cols = m[2].split(',').map(function (c) { return c.trim(); });
+      var fkCol = Object.keys(fks).find(function (k) { return fks[k] === refTable; });
+      var ref = fkCol && row[fkCol] != null
+        ? (store[refTable] || []).find(function (r) { return r.id === row[fkCol]; })
+        : null;
+      out[refTable] = ref ? pick(ref, cols.join(',')) : null;
+    }
+    return out;
+  }
+
+  function execute(state) {
+    var rows = (store[state.table] || []).slice();
+
+    if (state.op === 'insert') {
+      var maxId = rows.reduce(function (m, r) { return Math.max(m, r.id || 0); }, 0);
+      var row = Object.assign({ id: maxId + 1, created_at: new Date().toISOString() }, state.payload);
+      store[state.table].push(row);
+      return { data: [embed(row, state.table, state.select)], error: null };
+    }
+    if (state.op === 'update') {
+      var updated = [];
+      store[state.table] = rows.map(function (r) {
+        if (state.filters.every(function (f) { return f(r); })) {
+          var nr = Object.assign({}, r, state.payload);
+          updated.push(nr);
+          return nr;
+        }
+        return r;
+      });
+      return { data: updated.map(function (r) { return embed(r, state.table, state.select); }), error: null };
+    }
+    if (state.op === 'upsert') {
+      var key = state.onConflict;
+      var idx = store[state.table].findIndex(function (r) { return r[key] === state.payload[key]; });
+      var outRow;
+      if (idx >= 0) {
+        outRow = Object.assign({}, store[state.table][idx], state.payload);
+        store[state.table][idx] = outRow;
+      } else {
+        var mx = store[state.table].reduce(function (m, r) { return Math.max(m, r.id || 0); }, 0);
+        outRow = Object.assign({ created_at: new Date().toISOString() }, state.payload);
+        if (outRow.id == null && state.table !== 'settings') outRow.id = mx + 1;
+        store[state.table].push(outRow);
+      }
+      return { data: [embed(outRow, state.table, state.select)], error: null };
+    }
+    if (state.op === 'delete') {
+      var kept = rows.filter(function (r) { return !state.filters.every(function (f) { return f(r); }); });
+      var n = rows.length - kept.length;
+      store[state.table] = kept;
+      return { data: [], count: n, error: null };
+    }
+
+    // select
+    rows = rows.filter(function (r) { return state.filters.every(function (f) { return f(r); }); });
+    if (state.order) {
+      var c = state.order.col, asc = state.order.ascending;
+      rows.sort(function (a, b) {
+        var x = a[c], y = b[c];
+        if (x == null && y == null) return 0;
+        if (x == null) return asc ? 1 : -1;
+        if (y == null) return asc ? -1 : 1;
+        return (x < y ? -1 : x > y ? 1 : 0) * (asc ? 1 : -1);
+      });
+    }
+    if (state.limit) rows = rows.slice(0, state.limit);
+    if (state.head) return { data: [], count: rows.length, error: null };
+    return { data: rows.map(function (r) { return embed(r, state.table, state.select); }), error: null };
+  }
+
+  function builder(table) {
+    var state = { table: table, filters: [], order: null, limit: null, select: '*', head: false, op: 'select', payload: null, onConflict: null };
+    var b = {
+      select: function (cols, opts) {
+        state.select = cols || '*';
+        if (opts && opts.count) state.wantCount = true;
+        if (opts && opts.head) state.head = true;
+        return b;
+      },
+      eq: function (col, v) { state.filters.push(function (r) { return r[col] === v; }); return b; },
+      neq: function (col, v) { state.filters.push(function (r) { return r[col] !== v; }); return b; },
+      like: function (col, pat) { var re = likeToReg(0, pat, false); state.filters.push(function (r) { return re.test(String(r[col] == null ? '' : r[col])); }); return b; },
+      ilike: function (col, pat) { var re = likeToReg(0, pat, true); state.filters.push(function (r) { return re.test(String(r[col] == null ? '' : r[col])); }); return b; },
+      in: function (col, arr) { state.filters.push(function (r) { return arr.indexOf(r[col]) >= 0; }); return b; },
+      not: function (col, op, val) {
+        if (op === 'in') {
+          var vals = String(val).replace(/^\(|\)$/g, '').split(',');
+          state.filters.push(function (r) { return vals.indexOf(String(r[col])) < 0; });
+        }
+        return b;
+      },
+      is: function (col, v) { state.filters.push(function (r) { return r[col] === v; }); return b; },
+      gte: function (col, v) { state.filters.push(function (r) { return r[col] >= v; }); return b; },
+      lte: function (col, v) { state.filters.push(function (r) { return r[col] <= v; }); return b; },
+      or: function (str) {
+        var parts = [];
+        var re = /(\w+)\.ilike\."%([^"]*)%"/g, m;
+        while ((m = re.exec(str))) parts.push({ col: m[1], term: m[2].toLowerCase() });
+        state.filters.push(function (r) {
+          return parts.some(function (p) { return String(r[p.col] == null ? '' : r[p.col]).toLowerCase().indexOf(p.term) >= 0; });
+        });
+        return b;
+      },
+      order: function (col, opts) { state.order = { col: col, ascending: !opts || opts.ascending !== false }; return b; },
+      limit: function (n) { state.limit = n; return b; },
+      insert: function (obj) { state.op = 'insert'; state.payload = obj; return b; },
+      update: function (obj) { state.op = 'update'; state.payload = obj; return b; },
+      upsert: function (obj, opts) { state.op = 'upsert'; state.payload = obj; state.onConflict = opts && opts.onConflict; return b; },
+      delete: function () { state.op = 'delete'; return b; },
+      single: function () {
+        var res = execute(state);
+        return Promise.resolve({ data: (res.data && res.data[0] != null) ? res.data[0] : null, error: res.error });
+      },
+      then: function (resolve) { resolve(execute(state)); },
+    };
+    return b;
+  }
+
+  // ---- auth mock: starts signed OUT so the login screen is exercised ----
+  var users = [];
+  var session = null;
+  var authListeners = [];
+
+  var auth = {
+    getSession: function () { return Promise.resolve({ data: { session: session } }); },
+    signUp: function (creds) {
+      if (users.some(function (u) { return u.email === creds.email; })) {
+        return Promise.resolve({ error: { message: 'User already registered' } });
+      }
+      users.push({ email: creds.email, password: creds.password });
+      return Promise.resolve({ data: { user: { email: creds.email } }, error: null });
+    },
+    signInWithPassword: function (creds) {
+      var u = users.find(function (x) { return x.email === creds.email && x.password === creds.password; });
+      if (!u) return Promise.resolve({ error: { message: 'Invalid login credentials' } });
+      session = { user: { email: u.email } };
+      return Promise.resolve({ data: { session: session }, error: null });
+    },
+    signOut: function () { session = null; return Promise.resolve({ error: null }); },
+    onAuthStateChange: function (cb) {
+      authListeners.push(cb);
+      return { data: { subscription: { unsubscribe: function () {} } } };
+    },
+  };
+
+  window.supabaseLib = {
+    createClient: function () {
+      return { from: builder, auth: auth };
+    },
+  };
+  // test seam: inspect/reset store from the driver
+  window.__mockStore = store;
+})();
+</script>
+<script>// High Ground HQ — cloud data layer (Supabase/Postgres).
+// Replaces the old Electron window.hq raw-SQL bridge. Every view talks to
+// HQ.db through this small table-oriented API; no raw SQL in the browser.
+//
+// where-filters: { col: value } for equality, or
+//   { col: { op: 'like'|'ilike'|'in'|'neq', val: ... } } for operators.
+(function () {
+  'use strict';
+
+  var ESM_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  var client = null;
+
+  async function supabaseLib() {
+    if (window.supabaseLib) return window.supabaseLib; // Electron v2 preload (bundled npm pkg)
+    return await import(ESM_URL);                       // hosted web build
+  }
+
+  async function getClient() {
+    if (client) return client;
+    var cfg = window.HQ_CONFIG || {};
+    if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
+      throw new Error('Missing Supabase config — renderer/config.js was not created at deploy time.');
+    }
+    var lib = await supabaseLib();
+    client = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+    return client;
+  }
+
+  function applyWhere(q, where) {
+    var entries = Object.entries(where || {});
+    for (var i = 0; i < entries.length; i++) {
+      var col = entries[i][0], val = entries[i][1];
+      if (val !== null && typeof val === 'object' && val.op) {
+        if (val.op === 'like') q = q.like(col, val.val);
+        else if (val.op === 'ilike') q = q.ilike(col, val.val);
+        else if (val.op === 'in') q = q.in(col, val.val);
+        else if (val.op === 'neq') q = q.neq(col, val.val);
+        else if (val.op === 'nin') q = q.not(col, 'in', '(' + val.val.join(',') + ')');
+        else if (val.op === 'gte') q = q.gte(col, val.val);
+        else if (val.op === 'lte') q = q.lte(col, val.val);
+      } else if (val === null) {
+        q = q.is(col, null);
+      } else {
+        q = q.eq(col, val);
+      }
+    }
+    return q;
+  }
+
+  // Dependency order for full wipes / imports (parents before children).
+  var DATA_TABLES = ['campaign_targets', 'campaigns', 'drafts', 'estimates', 'jobs', 'leads'];
+  var ALL_TABLES = ['leads', 'jobs', 'estimates', 'drafts', 'campaigns', 'campaign_targets', 'settings'];
+
+  var db = {
+    async list(table, opts) {
+      opts = opts || {};
+      var sb = await getClient();
+      var q = sb.from(table).select(opts.select || '*');
+      q = applyWhere(q, opts.where);
+      if (opts.orderBy) q = q.order(opts.orderBy, { ascending: (opts.order || 'asc') === 'asc' });
+      if (opts.limit) q = q.limit(opts.limit);
+      var res = await q;
+      if (res.error) throw res.error;
+      return res.data;
+    },
+
+    async get(table, id) {
+      var rows = await this.list(table, { where: { id: id }, limit: 1 });
+      return rows[0] || null;
+    },
+
+    async insert(table, obj) {
+      var sb = await getClient();
+      var res = await sb.from(table).insert(obj).select().single();
+      if (res.error) throw res.error;
+      return res.data;
+    },
+
+    async update(table, id, obj) {
+      var sb = await getClient();
+      var res = await sb.from(table).update(obj).eq('id', id).select().single();
+      if (res.error) throw res.error;
+      return res.data;
+    },
+
+    async upsert(table, obj, onConflict) {
+      var sb = await getClient();
+      var res = await sb.from(table).upsert(obj, { onConflict: onConflict }).select().single();
+      if (res.error) throw res.error;
+      return res.data;
+    },
+
+    async remove(table, id) {
+      var sb = await getClient();
+      var res = await sb.from(table).delete().eq('id', id);
+      if (res.error) throw res.error;
+    },
+
+    async removeWhere(table, where) {
+      var sb = await getClient();
+      var q = sb.from(table).delete();
+      var keys = Object.keys(where || {});
+      if (keys.length === 0) q = q.neq('id', 0); // match-all wipe (identity pks start at 1)
+      else q = applyWhere(q, where);
+      var res = await q;
+      if (res.error) throw res.error;
+    },
+
+    async count(table, where) {
+      var sb = await getClient();
+      var q = applyWhere(sb.from(table).select('id', { count: 'exact', head: true }), where);
+      var res = await q;
+      if (res.error) throw res.error;
+      return res.count || 0;
+    },
+
+    // OR search across columns: ilike "contains" on each of opts.cols.
+    // opts: { select, cols: [...], term: '...', where, orderBy, order, limit }
+    async search(table, opts) {
+      opts = opts || {};
+      var sb = await getClient();
+      var q = sb.from(table).select(opts.select || '*');
+      q = applyWhere(q, opts.where);
+      if (opts.term && opts.cols && opts.cols.length) {
+        // double-quote each pattern so commas/parens in the term can't split the or() list
+        var t = String(opts.term).replace(/"/g, '');
+        var ors = opts.cols.map(function (c) { return c + '.ilike."%' + t + '%"'; }).join(',');
+        q = q.or(ors);
+      }
+      if (opts.orderBy) q = q.order(opts.orderBy, { ascending: (opts.order || 'asc') === 'asc' });
+      if (opts.limit) q = q.limit(opts.limit);
+      var res = await q;
+      if (res.error) throw res.error;
+      return res.data;
+    },
+
+    // ---- auth (Supabase Auth, email+password) ----
+    async session() {
+      var sb = await getClient();
+      return sb.auth.getSession().then(function (r) { return r.data.session; });
+    },
+    async signIn(email, password) {
+      var sb = await getClient();
+      return sb.auth.signInWithPassword({ email: email, password: password });
+    },
+    async signUp(email, password) {
+      var sb = await getClient();
+      return sb.auth.signUp({ email: email, password: password });
+    },
+    async signOut() {
+      var sb = await getClient();
+      return sb.auth.signOut();
+    },
+    onAuthChange(cb) {
+      getClient().then(function (sb) {
+        sb.auth.onAuthStateChange(function (_evt, session) { cb(session); });
+      });
+    },
+
+    // ---- full JSON backup of every table (Settings -> Download backup) ----
+    async backup() {
+      var dump = {};
+      for (var i = 0; i < ALL_TABLES.length; i++) {
+        var t = ALL_TABLES[i];
+        dump[t] = await this.list(t, { orderBy: t === 'settings' ? 'key' : 'id' });
+      }
+      return JSON.stringify(dump, null, 2);
+    },
+
+    // ---- import a v1 desktop backup JSON (Settings -> Download backup in the old .exe).
+    // Wipes cloud data tables first (fresh cutover), remaps ids so FKs stay
+    // consistent, and upserts settings (so price-book edits merge, not dup).
+    async importBackup(json, opts) {
+      opts = opts || {};
+      var dump = typeof json === 'string' ? JSON.parse(json) : json;
+      var wipe = opts.wipe !== false;
+      var self = this;
+
+      if (wipe) {
+        for (var i = 0; i < DATA_TABLES.length; i++) {
+          await self.removeWhere(DATA_TABLES[i], {});
+        }
+      }
+
+      if (dump.settings) {
+        for (var s = 0; s < dump.settings.length; s++) {
+          await self.upsert('settings', { key: dump.settings[s].key, value: dump.settings[s].value }, 'key');
+        }
+      }
+
+      // id remap: oldId -> newId per table, applied to FK columns on insert.
+      var idMap = { leads: {}, jobs: {}, drafts: {}, campaigns: {} };
+      var fkFix = {
+        jobs: ['lead_id'],
+        estimates: ['job_id'],
+        drafts: ['lead_id', 'job_id'],
+        campaigns: ['job_id'],
+        campaign_targets: ['campaign_id', 'draft_id'],
+      };
+      var order = ['leads', 'jobs', 'estimates', 'drafts', 'campaigns', 'campaign_targets'];
+
+      for (var t = 0; t < order.length; t++) {
+        var table = order[t];
+        var rows = dump[table] || [];
+        for (var r = 0; r < rows.length; r++) {
+          var src = Object.assign({}, rows[r]);
+          var oldId = src.id;
+          delete src.id;
+          delete src.created_at; // let the cloud stamp fresh times
+          var fks = fkFix[table] || [];
+          for (var f = 0; f < fks.length; f++) {
+            var col = fks[f];
+            var refTable = col.replace(/_id$/, '') + 's';
+            if (refTable === 'campaings') refTable = 'campaigns';
+            if (src[col] && idMap[refTable] && idMap[refTable][src[col]]) {
+              src[col] = idMap[refTable][src[col]];
+            }
+          }
+          // drop FKs that point at rows not in this backup (orphans)
+          for (var f2 = 0; f2 < fks.length; f2++) {
+            var col2 = fks[f2];
+            var ref2 = col2.replace(/_id$/, '') + 's';
+            if (src[col2] && !(idMap[ref2] && idMap[ref2][src[col2]])) src[col2] = null;
+          }
+          var inserted = await self.insert(table, src);
+          if (idMap[table]) idMap[table][oldId] = inserted.id;
+        }
+      }
+      return true;
+    },
+  };
+
+  window.HQ_CLOUD_DB = db;
+})();
+</script>
+<script>// High Ground HQ — supplement engine.
+// Rebuilt from the Roof Supplement Builder spec: measurements in, line items
+// out. Every quantity is a formula off the measurements; every price comes
+// from the editable price book (planning defaults until the owner sets real
+// Xactimate rates). O&P applies at 3+ trades.
+//
+// Works in the Electron renderer AND in plain node (for tests).
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.HQSupplement = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  function roundUp3(sq) {
+    return Math.ceil(sq * 3) / 3;
+  }
+
+  // Master list: 20 supplement line items.
+  // qty(m) receives measurements; trade groups drive the O&P rule.
+  const ITEMS = [
+    { key: 'shingles',     name: 'Laminated composition shingles',        unit: 'SQ', trade: 'roofing',   qty: (m) => m.roofSQ },
+    { key: 'underlayment', name: 'Synthetic underlayment',                unit: 'SQ', trade: 'roofing',   qty: (m) => m.roofSQ },
+    { key: 'redeck',       name: 'Redeck — 7/16" OSB sheathing',          unit: 'SQ', trade: 'carpentry', qty: (m) => m.roofSQ },
+    { key: 'ice_water',    name: 'Ice & water shield (eaves + valleys)',  unit: 'SQ', trade: 'roofing',   qty: (m) => roundUp3((m.eavesLF * 3 + m.valleysLF * 6) / 100) },
+    { key: 'drip_edge',    name: 'Drip edge',                             unit: 'LF', trade: 'roofing',   qty: (m) => m.eavesLF + m.rakesLF },
+    { key: 'starter',      name: 'Starter course',                        unit: 'LF', trade: 'roofing',   qty: (m) => m.eavesLF + m.rakesLF },
+    { key: 'ridge_vent',   name: 'Ridge vent',                            unit: 'LF', trade: 'roofing',   qty: (m) => m.ridgesLF },
+    { key: 'ridge_cap',    name: 'Hip & ridge cap shingles',              unit: 'LF', trade: 'roofing',   qty: (m) => m.ridgesLF + m.hipsLF },
+    { key: 'valley_metal', name: 'Valley metal (W-valley)',               unit: 'LF', trade: 'roofing',   qty: (m) => m.valleysLF },
+    { key: 'pipe_boot',    name: 'Pipe jack flashing / boots',            unit: 'EA', trade: 'roofing',   qty: (m) => m.pipeCount || 0 },
+    { key: 'step_flashing',name: 'Step flashing (roof-to-wall)',          unit: 'LF', trade: 'roofing',   qty: (m) => m.stepFlashingLF || 0 },
+    { key: 'wall_flash',   name: 'Headwall / wall flashing',              unit: 'LF', trade: 'roofing',   qty: (m) => m.wallFlashingLF || 0 },
+    { key: 'chimney_flash',name: 'Chimney flashing',                     unit: 'EA', trade: 'roofing',   qty: (m) => m.chimneyCount || 0 },
+    { key: 'skylight_rr',  name: 'Detach & reset skylight',               unit: 'EA', trade: 'roofing',   qty: (m) => m.skylightCount || 0 },
+    { key: 'satellite_rr', name: 'Detach & reset satellite / dish',       unit: 'EA', trade: 'roofing',   qty: (m) => m.satelliteCount || 0 },
+    { key: 'gutter_rr',    name: 'Detach & reset gutters & downspouts',   unit: 'LF', trade: 'gutters',   qty: (m) => m.eavesLF },
+    { key: 'plywood_allow',name: 'Plywood replacement allowance',         unit: 'SQ', trade: 'carpentry', qty: (m) => Math.max(1, roundUp3(m.roofSQ * 0.05)) },
+    { key: 'haul_off',     name: 'Tear-off haul-off / dump fees',          unit: 'SQ', trade: 'roofing',   qty: (m) => m.roofSQ },
+    { key: 'paint_touchup',name: 'Exterior paint touch-up (fascia/siding at roof lines)', unit: 'EA', trade: 'paint', qty: () => 1 },
+    { key: 'permit',       name: 'Building permit',                       unit: 'EA', trade: 'admin',     qty: () => 1 },
+  ];
+
+  // Xactimate RFG codes / keywords that mark an item as already covered by
+  // the adjuster's estimate. Anything not covered is a supplement candidate.
+  const COVERAGE = [
+    { key: 'shingles',     rx: /RFG\s*(240|300|230)|laminated|composition shingle/i },
+    { key: 'underlayment', rx: /RFG\s*(200|210)|#?15[-\s]?lb|felt|synthetic underlayment/i },
+    { key: 'redeck',       rx: /re-?deck|sheathing|\bOSB\b|plywood|RFG\s*105/i },
+    { key: 'ice_water',    rx: /ice|water (shield|barrier)|leak barrier/i },
+    { key: 'drip_edge',    rx: /drip edge/i },
+    { key: 'starter',      rx: /starter/i },
+    { key: 'ridge_vent',   rx: /ridge vent|ventilation/i },
+    { key: 'ridge_cap',    rx: /RFG\s*410|ridge cap|hip & ridge|hip and ridge/i },
+    { key: 'valley_metal', rx: /RFG\s*62\d|valley/i },
+    { key: 'pipe_boot',    rx: /pipe (jack|flashing|boot)/i },
+    { key: 'step_flashing',rx: /step flashing/i },
+    { key: 'wall_flash',   rx: /headwall|wall flashing|counter flashing/i },
+    { key: 'chimney_flash',rx: /chimney/i },
+    { key: 'skylight_rr',  rx: /skylight/i },
+    { key: 'satellite_rr', rx: /satellite|dish/i },
+    { key: 'gutter_rr',    rx: /RFG\s*70\d|gutter|downspout/i },
+    { key: 'haul_off',     rx: /haul|debris|dumpster|dump fee/i },
+    { key: 'permit',       rx: /permit/i },
+  ];
+
+  function coveredKeys(adjusterText) {
+    const found = new Set();
+    if (!adjusterText) return found;
+    for (const c of COVERAGE) if (c.rx.test(adjusterText)) found.add(c.key);
+    return found;
+  }
+
+  // O&P: 10% overhead + 10% profit when 3+ trades are on the supplement.
+  function applyOP(items, subtotal) {
+    const trades = new Set(items.filter((i) => i.qty > 0).map((i) => i.trade));
+    if (trades.size < 3) return { items, opLines: [], trades: [...trades] };
+    const oh = +(subtotal * 0.1).toFixed(2);
+    const pf = +(subtotal * 0.1).toFixed(2);
+    return {
+      items,
+      opLines: [
+        { key: 'overhead', name: 'Overhead (10%)', unit: '%', qty: 10, price: +(subtotal / 100).toFixed(2), total: oh },
+        { key: 'profit',   name: 'Profit (10%)',   unit: '%', qty: 10, price: +(subtotal / 100).toFixed(2), total: pf },
+      ],
+      trades: [...trades],
+    };
+  }
+
+  // measurements: {roofSQ, eavesLF, rakesLF, ridgesLF, hipsLF, valleysLF,
+  //   stepFlashingLF, wallFlashingLF, pipeCount, chimneyCount, skylightCount,
+  //   satelliteCount}
+  // opts: {priceBook, adjusterText, includeCovered=false, qtyOverrides={}}
+  function buildSupplement(measurements, opts = {}) {
+    const priceBook = opts.priceBook || {};
+    const covered = coveredKeys(opts.adjusterText || '');
+    const overrides = opts.qtyOverrides || {};
+    const items = [];
+    for (const def of ITEMS) {
+      let qty = def.key in overrides ? +overrides[def.key] : +def.qty(measurements).toFixed(2);
+      if (!qty || qty <= 0) continue;
+      const price = +(priceBook[def.key] || 0);
+      items.push({
+        key: def.key, name: def.name, unit: def.unit, trade: def.trade,
+        qty, price, total: +(qty * price).toFixed(2),
+        adjusterCovered: covered.has(def.key),
+      });
+    }
+    const visible = opts.includeCovered ? items : items.filter((i) => !i.adjusterCovered);
+    const subtotal = +visible.reduce((s, i) => s + i.total, 0).toFixed(2);
+    const { opLines, trades } = applyOP(visible, subtotal);
+    const total = +(subtotal + opLines.reduce((s, l) => s + l.total, 0)).toFixed(2);
+    return {
+      items: visible, opLines, subtotal, total, trades,
+      coveredCount: items.filter((i) => i.adjusterCovered).length,
+    };
+  }
+
+  // Derive working measurements from raw EagleView-style numbers.
+  // wastePct comes from the report's "Suggested" waste column (manual override
+  // always available). Squares round UP to the nearest 1/3 SQ per EagleView.
+  function deriveMeasurements(raw) {
+    const waste = (raw.wastePct || 10) / 100;
+    const roofSQ = roundUp3(((raw.totalSqFt || 0) / 100) * (1 + waste));
+    return {
+      totalSqFt: raw.totalSqFt || 0,
+      wastePct: raw.wastePct || 10,
+      pitch: raw.pitch || '',
+      roofSQ,
+      ridgesLF: raw.ridgesLF || 0,
+      hipsLF: raw.hipsLF || 0,
+      valleysLF: raw.valleysLF || 0,
+      rakesLF: raw.rakesLF || 0,
+      eavesLF: raw.eavesLF || 0,
+      stepFlashingLF: raw.stepFlashingLF || 0,
+      wallFlashingLF: raw.wallFlashingLF || 0,
+      pipeCount: raw.pipeCount || 0,
+      chimneyCount: raw.chimneyCount || 0,
+      skylightCount: raw.skylightCount || 0,
+      satelliteCount: raw.satelliteCount || 0,
+      starterLF: raw.eavesLF || 0,
+      dripEdgeLF: (raw.eavesLF || 0) + (raw.rakesLF || 0),
+      ridgeCapLF: (raw.ridgesLF || 0) + (raw.hipsLF || 0),
+      shinglesSQ: roofSQ,
+    };
+  }
+
+  return { ITEMS, COVERAGE, roundUp3, coveredKeys, applyOP, buildSupplement, deriveMeasurements };
+});
+</script>
+<script>// High Ground HQ — PDF text parsers (EagleView + Xactimate).
+// Text extraction itself is done with pdfjs-dist in the renderer; these
+// functions turn raw text into structured data. Best-effort by design —
+// every field lands in an editable form before it feeds the engine.
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.HQParsers = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  function num(rx, text, group = 1) {
+    const m = text.match(rx);
+    if (!m) return 0;
+    return parseFloat(String(m[group]).replace(/,/g, '')) || 0;
+  }
+  function str(rx, text, group = 1) {
+    const m = text.match(rx);
+    return m ? String(m[group]).trim() : '';
+  }
+
+  // ---- EagleView ---------------------------------------------------------
+  // Handles the standard EagleView measurement report layout, including the
+  // waste-factor table where the "Suggested" label sits under the suggested
+  // column (the fix from 2026-09-24: never hardcode 9% vs 11%).
+  function parseEagleViewText(text) {
+    const t = text.replace(/\r/g, '\n');
+    const raw = {
+      totalSqFt: num(/total roof area[:\s]+([\d,]+)\s*sq\.?\s*ft/i, t),
+      pitch: str(/predominant pitch[:\s]+(\d+\s*\/\s*\d+)/i, t),
+      ridgesLF: num(/ridges?[:\s]+([\d,.]+)\s*ft/i, t),
+      hipsLF: num(/hips?[:\s]+([\d,.]+)\s*ft/i, t),
+      valleysLF: num(/valleys?[:\s]+([\d,.]+)\s*ft/i, t),
+      rakesLF: num(/rakes?[:\s]+([\d,.]+)\s*ft/i, t),
+      eavesLF: num(/eaves?[:\s]+([\d,.]+)\s*ft/i, t),
+      stepFlashingLF: num(/step flashing[:\s]+([\d,.]+)\s*ft/i, t),
+    };
+    raw.wastePct = detectWastePct(t);
+    const found = Object.entries(raw).filter(([, v]) => v).map(([k]) => k);
+    return { raw, found, confidence: found.length >= 4 ? 'good' : 'partial' };
+  }
+
+  function detectWastePct(t) {
+    // Find "Suggested" near the waste table, then take the % value closest
+    // to it (the column header it sits under).
+    const idx = t.search(/suggested/i);
+    if (idx === -1) return 10;
+    const window = t.slice(Math.max(0, idx - 400), idx + 120);
+    let best = null;
+    let bestDist = Infinity;
+    const re = /(\d{1,2})\s*%/g;
+    let m;
+    while ((m = re.exec(window))) {
+      const pct = parseInt(m[1], 10);
+      if (pct < 3 || pct > 30) continue;
+      const d = Math.abs(m.index - (idx - Math.max(0, idx - 400)));
+      if (d < bestDist) { bestDist = d; best = pct; }
+    }
+    return best || 10;
+  }
+
+  // ---- Xactimate (adjuster's estimate) -----------------------------------
+  // Pulls RFG line items out of the estimate text and reports which
+  // supplement items the adjuster already covered vs. missed.
+  function parseXactimateText(text) {
+    const t = text.replace(/\r/g, '\n');
+    const items = [];
+    const re = /(RFG\s*\d{3})\s+([^\n]{4,80}?)\s+([\d,.]+\s*(?:SQ|LF|EA))\s+\$?([\d,.]+)\s+\$?([\d,.]+)/gi;
+    let m;
+    while ((m = re.exec(t))) {
+      items.push({
+        code: m[1].replace(/\s+/g, ' ').trim(),
+        desc: m[2].trim(),
+        qty: m[3].trim(),
+        price: parseFloat(m[4].replace(/,/g, '')) || 0,
+        total: parseFloat(m[5].replace(/,/g, '')) || 0,
+      });
+    }
+    const claimNumber = str(/claim (?:number|#)[:\s]+([A-Za-z0-9-]+)/i, t);
+    const insured = str(/(?:policyholder|insured)[:\s]+([^\n]+)/i, t);
+    return { items, claimNumber, insured: insured.trim(), rawText: t.slice(0, 20000) };
+  }
+
+  return { parseEagleViewText, parseXactimateText };
+});
+</script>
+<script>// High Ground HQ — app shell: router, helpers, shared state.
+// Views register themselves in window.VIEWS = { name: {title, render(el, arg), actions()} }.
+(function () {
+  'use strict';
+
+  window.VIEWS = {};
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  function h(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function money(n) {
+    return '$' + (+n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function fmtDate(s) {
+    if (!s) return '—';
+    const d = new Date(String(s).replace(' ', 'T'));
+    return isNaN(d) ? h(s) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function badge(text) {
+    const cls = 'b-' + String(text || '').toLowerCase().replace(/[^a-z]/g, '');
+    return `<span class="badge ${cls}">${h(text)}</span>`;
+  }
+
+  // Cloud backend (Supabase). db-cloud.js must load before this file.
+  const db = window.HQ_CLOUD_DB;
+
+  // Shared state: company settings + price book, loaded once at boot.
+  const S = { settings: {}, priceBook: {}, ready: false, user: null };
+
+  async function loadSettings() {
+    const rows = await db.list('settings');
+    S.settings = {};
+    for (const r of rows) S.settings[r.key] = r.value;
+    try { S.priceBook = JSON.parse(S.settings.price_book || '{}'); }
+    catch (e) { S.priceBook = {}; }
+    S.ready = true;
+  }
+  async function savePriceBook() {
+    await db.upsert('settings', { key: 'price_book', value: JSON.stringify(S.priceBook) }, 'key');
+  }
+  async function saveSetting(key, value) {
+    S.settings[key] = value;
+    await db.upsert('settings', { key, value }, 'key');
+  }
+
+  const TITLES = {
+    dashboard: 'Dashboard', leads: 'Leads', jobs: 'Jobs', estimates: 'Estimates',
+    comms: 'Comms — drafts & outreach', campaigns: 'Neighborhood campaigns', settings: 'Settings',
+  };
+
+  let current = 'dashboard';
+  let currentArg = null;
+
+  async function go(view, arg) {
+    current = view; currentArg = arg === undefined ? null : arg;
+    $$('#nav button').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+    $('#view-title').textContent = TITLES[view] || view;
+    const V = window.VIEWS[view];
+    const bar = $('#topbar-actions');
+    bar.innerHTML = (V && V.actions) ? V.actions(arg) : '';
+    if (V && V.bindActions) V.bindActions(bar, arg);
+    const el = $('#view');
+    el.innerHTML = '<p class="muted">Loading…</p>';
+    try {
+      await V.render(el, arg);
+    } catch (err) {
+      el.innerHTML = `<div class="panel"><h2>Something broke</h2><p class="muted">${h(err.message)}</p></div>`;
+      console.error(err);
+    }
+  }
+
+  // Merge-field templates for AI-assisted drafts (free tier: templates +
+  // "copy prompt for Muse" loop; Twilio/Gmail send wired later by the owner).
+  const TEMPLATES = [
+    { id: 'neighbor_done_email', kind: 'email', name: 'Email — we just finished your neighbor\u2019s roof',
+      subject: 'We just finished a roof on {{street}} — free inspection?',
+      body: 'Hi {{name}},\n\nThis is Josh with High Ground Roofing & Construction. We just wrapped a full roof replacement at {{job_address}}, right near you.\n\nAfter the May hail, a lot of roofs on {{street}} took damage that isn\u2019t visible from the ground. We do free 15-minute inspections with drone photos and handle the insurance paperwork if there\u2019s a claim to file.\n\nWant me to swing by this week?\n\n— Josh\nHigh Ground Roofing & Construction\n{{company_phone}}' },
+    { id: 'hail_check_text', kind: 'text', name: 'Text — hail damage check',
+      subject: '',
+      body: 'Hi {{name}}, Josh with High Ground Roofing. We just finished a roof near {{job_address}} and several homes nearby took hail in the May storm. Free 15-min drone inspection — want me to stop by this week? Reply STOP to opt out.' },
+    { id: 'inspection_offer_email', kind: 'email', name: 'Email — free inspection offer',
+      subject: 'Free roof inspection — {{address}}',
+      body: 'Hi {{name}},\n\nQuick one: I\u2019m Josh with High Ground Roofing & Construction here in OKC. We\u2019re offering free drone roof inspections in {{city}} this month — takes 15 minutes, photos included, no obligation.\n\nIf your roof took any of the spring hail, catching it early is what makes the difference with insurance.\n\nOpen to a quick look?\n\n— Josh\n{{company_phone}}' },
+    { id: 'claim_followup_email', kind: 'email', name: 'Email — claim / supplement follow-up',
+      subject: 'Update on your roof claim {{claim_number}}',
+      body: 'Hi {{name}},\n\nFollowing up on your roof claim {{claim_number}} ({{carrier}}). {{custom}}\n\nI\u2019ll keep you posted at every step — reply here or call me anytime at {{company_phone}}.\n\n— Josh\nHigh Ground Roofing & Construction' },
+    { id: 'call_script', kind: 'call', name: 'Call script — cold / follow-up',
+      subject: 'Call script',
+      body: 'Opener: "Hi {{name}}, this is Josh with High Ground Roofing here in OKC — do you have 30 seconds?"\n\nHook: "We just finished a roof over at {{job_address}} and I\u2019m checking the homes nearby for the same hail damage — most of it you can\u2019t see from the ground."\n\nAsk: "We do a free 15-minute drone inspection with photos — would Thursday or Friday work better for a quick look?"\n\nObjections:\n- "Not interested" → "Totally fair — if you spot granules in the gutters or a leak after the next rain, call me direct at {{company_phone}}."\n- "I have a guy" → "Good — just know we handle the insurance paperwork end to end if it ever comes to that."\n\nLog the outcome below after the call.' },
+  ];
+
+  function fillTemplate(tpl, ctx) {
+    const c = Object.assign({
+      name: '', address: '', street: '', city: 'Oklahoma City', zip: '',
+      job_address: '', claim_number: '', carrier: '', custom: '',
+      company_phone: S.settings.company_phone || '',
+      company_name: S.settings.company_name || '',
+    }, ctx || {});
+    const fill = (s) => String(s).replace(/\{\{(\w+)\}\}/g, (_, k) => c[k] != null ? c[k] : '');
+    return { subject: fill(tpl.subject), body: fill(tpl.body) };
+  }
+
+  function aiPromptForDraft(kind, subject, body, ctx) {
+    return 'You are helping Josh at High Ground Roofing & Construction (OKC, (405) 252-0058) write a ' + kind +
+      ' to a roofing customer/lead.\n\nContext:\n' + JSON.stringify(ctx || {}, null, 2) +
+      '\n\nCurrent draft' + (subject ? ' (subject: ' + subject + ')' : '') + ':\n' + body +
+      '\n\nRewrite it in Josh\u2019s voice: plain, direct, neighborly, zero hype. Keep it short. ' +
+      'For texts: under 320 characters and end with "Reply STOP to opt out." ' +
+      'For emails: clear subject line, one ask. For call scripts: opener, hook, ask, two objection handlers. ' +
+      'Return ONLY the rewritten ' + kind + ' (and subject line first for emails).';
+  }
+
+  window.HQ = { $, $$, h, money, fmtDate, badge, db, S, loadSettings, savePriceBook, saveSetting, go, TEMPLATES, fillTemplate, aiPromptForDraft,
+    auth: {
+      signOut: () => db.signOut().then(() => location.reload()),
+    } };
+
+  async function boot() {
+    await loadSettings();
+    go('dashboard');
+  }
+
+  function renderLogin() {
+    $('#view-title').textContent = 'Sign in';
+    $('#view').innerHTML = `<div class="panel login-panel">
+      <h2>High Ground HQ</h2>
+      <p class="muted">Sign in to access the shared workspace.</p>
+      <label>Email<input id="login-email" type="email" autocomplete="username"></label>
+      <label>Password<input id="login-pass" type="password" autocomplete="current-password"></label>
+      <p class="form-err" id="login-err"></p>
+      <div class="row">
+        <button id="login-in" class="btn primary">Sign in</button>
+        <button id="login-up" class="btn">Create account</button>
+      </div>
+      <p class="muted small">First time here? Create your account, then sign in.</p>
+    </div>`;
+    const err = (m) => { const e = $('#login-err'); if (e) e.textContent = m; };
+    $('#login-in').onclick = async () => {
+      const { error } = await db.signIn($('#login-email').value.trim(), $('#login-pass').value);
+      if (error) return err(error.message);
+      boot();
+    };
+    $('#login-up').onclick = async () => {
+      const { error } = await db.signUp($('#login-email').value.trim(), $('#login-pass').value);
+      if (error) return err(error.message);
+      err('Account created — you can sign in now.');
+    };
+    $('#login-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#login-in').click(); });
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    $$('#nav button').forEach((b) => b.addEventListener('click', () => go(b.dataset.view)));
+    try {
+      const session = await db.session();
+      if (!session) return renderLogin();
+      S.user = session.user;
+      await boot();
+    } catch (err) {
+      $('#view').innerHTML = `<div class="panel"><h2>Not connected</h2><p class="muted">${h(err.message)}</p><p class="muted">The cloud config (renderer/config.js) is missing or unreachable.</p></div>`;
+      console.error(err);
+    }
+  });
+})();
+</script>
+<script>// High Ground HQ — views: Dashboard, Leads, Jobs.
+(function () {
+  'use strict';
+  const { $, $$, h, money, fmtDate, badge, db, S, go } = window.HQ;
+
+  // ---------------- Dashboard ----------------
+  window.VIEWS.dashboard = {
+    async render(el) {
+      const leadCount = await db.count('leads', { status: { op: 'in', val: ['lead', 'contacted'] } });
+      const jobCount = await db.count('jobs', { status: { op: 'nin', val: ['completed', 'cancelled'] } });
+      const draftCount = await db.count('drafts', { status: 'draft' });
+      const estCount = await db.count('estimates');
+      const jobs = await db.list('jobs', {
+        select: '*, leads(name)',
+        where: { status: { op: 'nin', val: ['completed', 'cancelled'] } },
+        orderBy: 'created_at', order: 'desc', limit: 8,
+      });
+      jobs.forEach((j) => { j.lead_name = j.leads ? j.leads.name : null; });
+      const drafts = await db.list('drafts', {
+        select: '*, leads(name)', where: { status: 'draft' },
+        orderBy: 'created_at', order: 'desc', limit: 8,
+      });
+      drafts.forEach((d) => { d.lead_name = d.leads ? d.leads.name : null; });
+      el.innerHTML = `
+        <div class="cards">
+          <div class="card"><div class="k">Active leads</div><div class="v">${leadCount}</div></div>
+          <div class="card"><div class="k">Open jobs</div><div class="v">${jobCount}</div></div>
+          <div class="card"><div class="k">Drafts awaiting approval</div><div class="v amber">${draftCount}</div></div>
+          <div class="card"><div class="k">Supplements built</div><div class="v">${estCount}</div></div>
+        </div>
+        <div class="two-col">
+          <div class="panel"><h2>Open jobs</h2>
+            ${jobs.length ? `<table><tr><th>Address</th><th>Lead</th><th>Status</th></tr>
+              ${jobs.map((j) => `<tr><td><a href="#" data-go="jobs:${j.id}">${h(j.address)}</a></td><td>${h(j.lead_name || '—')}</td><td>${badge(j.status)}</td></tr>`).join('')}</table>`
+              : '<p class="muted">No open jobs.</p>'}
+          </div>
+          <div class="panel"><h2>Drafts awaiting approval</h2>
+            ${drafts.length ? `<table><tr><th>Kind</th><th>To</th><th>Subject</th></tr>
+              ${drafts.map((d) => `<tr><td>${badge(d.kind)}</td><td>${h(d.lead_name || '—')}</td><td><a href="#" data-go="comms">${h(d.subject || d.body.slice(0, 40) + '…')}</a></td></tr>`).join('')}</table>`
+              : '<p class="muted">Queue is clear. Nothing waiting on your tap.</p>'}
+          </div>
+        </div>`;
+      $$('[data-go]', el).forEach((a) => a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const [v, arg] = a.dataset.go.split(':');
+        go(v, arg ? +arg : null);
+      }));
+    },
+  };
+
+  // ---------------- Leads ----------------
+  const LEAD_STATUSES = ['lead', 'contacted', 'estimate_sent', 'customer', 'lost'];
+
+  window.VIEWS.leads = {
+    actions() {
+      return `<button class="ghost small" id="btn-import">Import CSV</button>
+              <button class="small" id="btn-add-lead">+ Add lead</button>
+              <input type="file" id="csv-file" accept=".csv" style="display:none">`;
+    },
+    bindActions(bar) {
+      $('#btn-add-lead', bar).onclick = () => go('leads', 'new');
+      $('#btn-import', bar).onclick = () => $('#csv-file', bar).click();
+      $('#csv-file', bar).onchange = async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const text = await f.text();
+        const lines = text.trim().split(/\r?\n/);
+        const head = lines[0].split(',').map((s) => s.trim().toLowerCase());
+        let n = 0;
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(',').map((s) => s.trim());
+          const get = (k) => cols[head.indexOf(k)] || '';
+          const name = get('name');
+          if (!name) continue;
+          await db.insert('leads', {
+            name, phone: get('phone'), email: get('email'), address: get('address'),
+            city: get('city') || 'Oklahoma City', zip: get('zip'),
+            source: 'csv_import', notes: 'Imported ' + fmtDate(new Date()),
+          });
+          n++;
+        }
+        alert('Imported ' + n + ' leads.');
+        go('leads');
+      };
+    },
+    async render(el, arg) {
+      if (arg === 'new' || (arg && arg !== 'list')) return this.form(el, arg === 'new' ? null : +arg);
+      const q = (this._q || '').toLowerCase();
+      const st = this._st || '';
+      const where = {};
+      if (st) where.status = st;
+      const leads = q
+        ? await db.search('leads', { cols: ['name', 'address', 'phone'], term: q, where, orderBy: 'created_at', order: 'desc' })
+        : await db.list('leads', { where, orderBy: 'created_at', order: 'desc' });
+      el.innerHTML = `
+        <div class="toolbar">
+          <input id="lead-q" placeholder="Search name, address, phone…" value="${h(this._q || '')}">
+          <select id="lead-st" style="width:auto">
+            <option value="">All statuses</option>
+            ${LEAD_STATUSES.map((s) => `<option ${st === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="panel"><table>
+          <tr><th>Name</th><th>Phone</th><th>Address</th><th>Source</th><th>Status</th><th>Skip trace</th><th></th></tr>
+          ${leads.map((l) => `<tr>
+            <td><a href="#" data-lead="${l.id}">${h(l.name)}</a></td>
+            <td>${h(l.phone || '—')}</td><td>${h(l.address || '—')}</td>
+            <td class="muted">${h(l.source)}</td><td>${badge(l.status)}</td>
+            <td class="muted">${h(l.skip_trace_status)}</td>
+            <td><div class="row-actions">
+              <button class="ghost small" data-draft="${l.id}">Draft</button>
+              <button class="ghost small" data-job="${l.id}">+ Job</button>
+            </div></td></tr>`).join('') || '<tr><td colspan="7" class="muted">No leads yet.</td></tr>'}
+        </table></div>
+        <div class="note">Skip tracing isn\u2019t connected yet — that\u2019s a paid integration the business owner adds later. The column, statuses, and provider slot in Settings are already wired for it.</div>`;
+      $('#lead-q', el).oninput = (e) => { this._q = e.target.value; };
+      $('#lead-q', el).onchange = () => this.render(el);
+      $('#lead-st', el).onchange = (e) => { this._st = e.target.value; this.render(el); };
+      $$('[data-lead]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('leads', +a.dataset.lead); });
+      $$('[data-draft]', el).forEach((b) => b.onclick = () => go('comms', { newFor: +b.dataset.draft }));
+      $$('[data-job]', el).forEach((b) => b.onclick = () => go('jobs', { newFor: +b.dataset.job }));
+    },
+    async form(el, id) {
+      const l = id ? await db.get('leads', id) : null;
+      const jobs = id ? await db.list('jobs', { where: { lead_id: id }, orderBy: 'created_at', order: 'desc' }) : [];
+      const drafts = id ? await db.list('drafts', { where: { lead_id: id }, orderBy: 'created_at', order: 'desc' }) : [];
+      el.innerHTML = `
+        <div class="toolbar"><button class="ghost small" id="back">← All leads</button></div>
+        <div class="two-col">
+        <div class="panel"><h2>${l ? h(l.name) : 'New lead'}</h2>
+          <div class="form-grid">
+            <div><label>Name</label><input id="f-name" value="${h(l?.name || '')}"></div>
+            <div><label>Phone</label><input id="f-phone" value="${h(l?.phone || '')}"></div>
+            <div><label>Email</label><input id="f-email" value="${h(l?.email || '')}"></div>
+            <div><label>Status</label><select id="f-status">${LEAD_STATUSES.map((s) => `<option ${l?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+            <div><label>Address</label><input id="f-address" value="${h(l?.address || '')}"></div>
+            <div><label>City</label><input id="f-city" value="${h(l?.city || 'Oklahoma City')}"></div>
+            <div><label>ZIP</label><input id="f-zip" value="${h(l?.zip || '')}"></div>
+            <div><label>Source</label><input id="f-source" value="${h(l?.source || 'manual')}"></div>
+          </div>
+          <label>Notes</label><textarea id="f-notes" style="min-height:70px">${h(l?.notes || '')}</textarea>
+          <div class="mt row-actions">
+            <button id="save">${l ? 'Save' : 'Create lead'}</button>
+            ${l ? `<button class="ghost" id="skiptrace">Run skip trace</button>` : ''}
+          </div>
+          ${l ? `<div class="note" id="st-note" style="display:none">Skip trace isn\u2019t connected yet — provider gets added when the business owner takes over. This button will pull name → phone/email/address then.</div>` : ''}
+        </div>
+        <div>
+          ${l ? `<div class="panel"><h2>Jobs</h2>
+            ${jobs.map((j) => `<p><a href="#" data-gojob="${j.id}">${h(j.address)}</a> ${badge(j.status)}</p>`).join('') || '<p class="muted">No jobs yet.</p>'}
+            <button class="ghost small mt" id="add-job">+ Job for this lead</button></div>
+          <div class="panel"><h2>Drafts</h2>
+            ${drafts.map((d) => `<p>${badge(d.kind)} ${badge(d.status)} <span class="muted">${h(d.subject || d.body.slice(0, 50))}</span></p>`).join('') || '<p class="muted">No drafts yet.</p>'}
+            <button class="ghost small mt" id="add-draft">+ Draft for this lead</button></div>` : ''}
+        </div></div>`;
+      $('#back', el).onclick = () => go('leads');
+      $('#save', el).onclick = async () => {
+        const vals = ['f-name', 'f-phone', 'f-email', 'f-status', 'f-address', 'f-city', 'f-zip', 'f-source', 'f-notes'].map((i) => $('#' + i, el).value.trim());
+        if (!vals[0]) { alert('Name is required.'); return; }
+        const obj = { name: vals[0], phone: vals[1], email: vals[2], status: vals[3], address: vals[4], city: vals[5], zip: vals[6], source: vals[7], notes: vals[8] };
+        if (l) await db.update('leads', id, obj);
+        else { await db.insert('leads', obj); }
+        go('leads');
+      };
+      const st = $('#skiptrace', el);
+      if (st) st.onclick = () => { $('#st-note', el).style.display = 'block'; };
+      const aj = $('#add-job', el); if (aj) aj.onclick = () => go('jobs', { newFor: id });
+      const ad = $('#add-draft', el); if (ad) ad.onclick = () => go('comms', { newFor: id });
+      $$('[data-gojob]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('jobs', +a.dataset.gojob); });
+    },
+  };
+
+  // ---------------- Jobs ----------------
+  const JOB_STATUSES = ['estimate', 'supplement', 'approved', 'scheduled', 'in_progress', 'completed', 'cancelled'];
+
+  window.VIEWS.jobs = {
+    actions() { return `<button class="small" id="btn-add-job">+ Add job</button>`; },
+    bindActions(bar) { $('#btn-add-job', bar).onclick = () => go('jobs', 'new'); },
+    async render(el, arg) {
+      if (arg === 'new' || (arg && typeof arg === 'object') || (arg && arg !== 'list')) return this.form(el, arg);
+      const jobs = await db.list('jobs', { select: '*, leads(name)', orderBy: 'created_at', order: 'desc' });
+      jobs.forEach((j) => { j.lead_name = j.leads ? j.leads.name : null; });
+      el.innerHTML = `<div class="panel"><table>
+        <tr><th>Address</th><th>Lead</th><th>Status</th><th>Claim</th><th>Carrier</th><th></th></tr>
+        ${jobs.map((j) => `<tr>
+          <td><a href="#" data-job="${j.id}">${h(j.address)}</a></td>
+          <td>${h(j.lead_name || '—')}</td><td>${badge(j.status)}</td>
+          <td class="muted">${h(j.claim_number || '—')}</td><td class="muted">${h(j.carrier || '—')}</td>
+          <td><button class="ghost small" data-est="${j.id}">Supplement</button></td></tr>`).join('')}
+        </table></div>`;
+      $$('[data-job]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('jobs', +a.dataset.job); });
+      $$('[data-est]', el).forEach((b) => b.onclick = () => go('estimates', { newFor: +b.dataset.est }));
+    },
+    async form(el, arg) {
+      const isNew = arg === 'new' || (arg && typeof arg === 'object');
+      const id = isNew ? null : +arg;
+      const presetLead = arg && typeof arg === 'object' ? arg.newFor : null;
+      const j = id ? await db.get('jobs', id) : null;
+      const leads = await db.list('leads', { select: 'id, name', orderBy: 'name' });
+      const estimates = id ? await db.list('estimates', { where: { job_id: id }, orderBy: 'created_at', order: 'desc' }) : [];
+      const m = j ? JSON.parse(j.measurements_json || '{}') : {};
+      el.innerHTML = `
+        <div class="toolbar"><button class="ghost small" id="back">← All jobs</button></div>
+        <div class="two-col">
+        <div class="panel"><h2>${j ? h(j.address) : 'New job'}</h2>
+          <label>Lead</label><select id="f-lead"><option value="">— none —</option>
+            ${leads.map((l) => `<option value="${l.id}" ${(j?.lead_id === l.id || presetLead === l.id) ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select>
+          <label>Job address</label><input id="f-address" value="${h(j?.address || '')}">
+          <div class="form-grid">
+            <div><label>Status</label><select id="f-status">${JOB_STATUSES.map((s) => `<option ${j?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+            <div><label>Claim #</label><input id="f-claim" value="${h(j?.claim_number || '')}"></div>
+            <div><label>Carrier</label><input id="f-carrier" value="${h(j?.carrier || '')}"></div>
+            <div><label>Adjuster</label><input id="f-adjuster" value="${h(j?.adjuster || '')}"></div>
+            <div><label>Date of loss</label><input id="f-dol" value="${h(j?.date_of_loss || '')}" placeholder="2026-05-18"></div>
+          </div>
+          <label>EagleView / measurements note</label><textarea id="f-ev" style="min-height:60px" placeholder="e.g. EagleView report 2026-09-20 parsed: 2,920 sq ft, 6/12, 11% waste">${h(j?.eagleview_note || '')}</textarea>
+          <label>Notes</label><textarea id="f-notes" style="min-height:60px">${h(j?.notes || '')}</textarea>
+          <div class="mt"><button id="save">${j ? 'Save' : 'Create job'}</button></div>
+        </div>
+        <div>
+          <div class="panel"><h2>Measurements</h2>
+            ${m.roofSQ ? `<table>
+              <tr><td>Total area</td><td><b>${h(m.totalSqFt)} sq ft</b></td></tr>
+              <tr><td>Roof squares (w/ ${h(m.wastePct)}% waste)</td><td><b>${h(m.roofSQ)} SQ</b></td></tr>
+              <tr><td>Pitch</td><td>${h(m.pitch || '—')}</td></tr>
+              <tr><td>Eaves / Rakes</td><td>${h(m.eavesLF)} / ${h(m.rakesLF)} LF</td></tr>
+              <tr><td>Ridges / Hips / Valleys</td><td>${h(m.ridgesLF)} / ${h(m.hipsLF)} / ${h(m.valleysLF)} LF</td></tr>
+              <tr><td>Starter / Drip edge / Ridge cap</td><td>${h(m.starterLF)} / ${h(m.dripEdgeLF)} / ${h(m.ridgeCapLF)} LF</td></tr>
+            </table>` : '<p class="muted">No measurements yet — parse an EagleView report or enter them in the estimate builder.</p>'}
+          </div>
+          ${j ? `<div class="panel"><h2>Supplements</h2>
+            ${estimates.map((e) => { const t = JSON.parse(e.totals_json || '{}'); return `<p><a href="#" data-est="${e.id}">Supplement ${fmtDate(e.created_at)}</a> — <b>${money(t.total)}</b></p>`; }).join('') || '<p class="muted">None yet.</p>'}
+            <button class="small mt" id="new-est">+ Build supplement</button></div>` : ''}
+        </div></div>`;
+      $('#back', el).onclick = () => go('jobs');
+      $('#save', el).onclick = async () => {
+        const vals = {
+          lead_id: $('#f-lead', el).value || null, address: $('#f-address', el).value.trim(),
+          status: $('#f-status', el).value, claim_number: $('#f-claim', el).value.trim(),
+          carrier: $('#f-carrier', el).value.trim(), adjuster: $('#f-adjuster', el).value.trim(),
+          date_of_loss: $('#f-dol', el).value.trim(), eagleview_note: $('#f-ev', el).value.trim(),
+          notes: $('#f-notes', el).value.trim(),
+        };
+        if (!vals.address) { alert('Address is required.'); return; }
+        if (j) await db.update('jobs', id, vals);
+        else await db.insert('jobs', vals);
+        go('jobs');
+      };
+      const ne = $('#new-est', el); if (ne) ne.onclick = () => go('estimates', { newFor: id });
+      $$('[data-est]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('estimates', +a.dataset.est); });
+    },
+  };
+})();
+</script>
+<script>// High Ground HQ — views: Estimates (supplement builder), Comms, Campaigns, Settings.
+(function () {
+  'use strict';
+  const { $, $$, h, money, fmtDate, badge, db, S, go, TEMPLATES, fillTemplate, aiPromptForDraft } = window.HQ;
+  const SE = window.HQSupplement;
+  const PA = window.HQParsers;
+
+  // ---------------- Estimates ----------------
+  const EST = { step: 1, jobId: null, claim: {}, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null };
+
+  async function extractPdfText(file) {
+    const pdfjs = await import('../node_modules/pdfjs-dist/build/pdf.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = '../node_modules/pdfjs-dist/build/pdf.worker.mjs';
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      text += tc.items.map((it) => it.str).join(' ') + '\n';
+    }
+    return text;
+  }
+
+  window.VIEWS.estimates = {
+    actions(arg) {
+      if (arg && typeof arg === 'object' && arg.newFor) return '';
+      if (typeof arg === 'number') return `<button class="ghost small" id="btn-est-back">← All estimates</button>`;
+      return '';
+    },
+    bindActions(bar, arg) {
+      const b = $('#btn-est-back', bar);
+      if (b) b.onclick = () => go('estimates');
+    },
+    async render(el, arg) {
+      if (arg && typeof arg === 'object' && arg.newFor) return this.builder(el, arg.newFor);
+      if (typeof arg === 'number') return this.detail(el, arg);
+      const rows = await db.list('estimates', { select: '*, jobs(address)', orderBy: 'created_at', order: 'desc' });
+      rows.forEach((r) => { r.address = r.jobs ? r.jobs.address : null; });
+      const jobs = await db.list('jobs', { select: 'id, address', orderBy: 'created_at', order: 'desc' });
+      el.innerHTML = `
+        <div class="toolbar"><select id="est-job" style="width:auto">
+          <option value="">Pick a job…</option>
+          ${jobs.map((j) => `<option value="${j.id}">${h(j.address)}</option>`).join('')}
+        </select><button class="small" id="est-new">+ Build supplement</button></div>
+        <div class="panel"><table><tr><th>Date</th><th>Job</th><th>Items</th><th>Total</th></tr>
+        ${rows.map((r) => { const t = JSON.parse(r.totals_json || '{}'); const it = JSON.parse(r.supplement_items_json || '[]');
+          return `<tr><td>${fmtDate(r.created_at)}</td><td><a href="#" data-est="${r.id}">${h(r.address || '—')}</a></td><td>${it.length}</td><td><b>${money(t.total)}</b></td></tr>`; }).join('')
+          || '<tr><td colspan="4" class="muted">No supplements yet.</td></tr>'}
+        </table></div>
+        <div class="note">Pricing comes from your editable price book (Settings) — planning defaults until the owner sets real Xactimate rates. Nothing here sends anything anywhere; it builds the document you review.</div>`;
+      $('#est-new', el).onclick = () => { const jid = $('#est-job', el).value; if (!jid) { alert('Pick a job first.'); return; } go('estimates', { newFor: +jid }); };
+      $$('[data-est]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('estimates', +a.dataset.est); });
+    },
+
+    async builder(el, jobId) {
+      const job = await db.get('jobs', jobId);
+      Object.assign(EST, { step: 1, jobId, claim: { address: job.address, claim_number: job.claim_number, carrier: job.carrier, adjuster: job.adjuster, date_of_loss: job.date_of_loss }, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null });
+      this.builderStep(el, job);
+    },
+
+    builderStep(el, job) {
+      const steps = ['Claim info', 'Measurements', 'Adjuster estimate', 'Supplement'];
+      let body = `<div class="toolbar"><button class="ghost small" id="est-cancel">← Cancel</button></div>
+        <div class="panel"><h2>Supplement — ${h(job.address)}</h2>
+        <div class="steps">${steps.map((s, i) => `<button class="${EST.step > i + 1 ? 'done' : ''} ${EST.step === i + 1 ? '' : 'ghost'}" data-step="${i + 1}" ${EST.step === i + 1 ? 'disabled' : ''}>${i + 1}. ${s}</button>`).join('')}</div>
+        <div id="est-body"></div></div>`;
+      el.innerHTML = body;
+      $('#est-cancel', el).onclick = () => go('estimates');
+      $$('[data-step]', el).forEach((b) => { if (!b.disabled) b.onclick = () => { EST.step = +b.dataset.step; this.builderStep(el, job); }; });
+      const b = $('#est-body', el);
+      if (EST.step === 1) this.stepClaim(b, job);
+      else if (EST.step === 2) this.stepMeasure(b, job);
+      else if (EST.step === 3) this.stepAdjuster(b, job);
+      else this.stepSupplement(b, job, el);
+    },
+
+    stepClaim(b, job) {
+      const c = EST.claim;
+      b.innerHTML = `<div class="form-grid">
+        <div><label>Property address</label><input id="c-address" value="${h(c.address || '')}"></div>
+        <div><label>Claim #</label><input id="c-claim" value="${h(c.claim_number || '')}"></div>
+        <div><label>Carrier</label><input id="c-carrier" value="${h(c.carrier || '')}"></div>
+        <div><label>Adjuster</label><input id="c-adjuster" value="${h(c.adjuster || '')}"></div>
+        <div><label>Date of loss</label><input id="c-dol" value="${h(c.date_of_loss || '')}"></div></div>
+        <div class="mt"><button id="c-next">Next: measurements →</button></div>`;
+      $('#c-next', b).onclick = () => {
+        EST.claim = { address: $('#c-address', b).value.trim(), claim_number: $('#c-claim', b).value.trim(), carrier: $('#c-carrier', b).value.trim(), adjuster: $('#c-adjuster', b).value.trim(), date_of_loss: $('#c-dol', b).value.trim() };
+        EST.step = 2; this.builderStep($('#view'), job);
+      };
+    },
+
+    stepMeasure(b, job) {
+      const r = EST.raw;
+      const F = (id, label, val, hint) => `<div><label>${label}</label><input id="${id}" type="number" step="any" value="${val == null ? '' : val}" placeholder="${hint || ''}"></div>`;
+      b.innerHTML = `
+        <div class="toolbar"><label class="muted" style="margin:0">EagleView PDF:</label>
+          <input type="file" id="ev-file" accept=".pdf" style="width:auto">
+          <span class="muted" id="ev-status"></span></div>
+        <div class="note" id="ev-found" style="display:none"></div>
+        <div class="form-grid">
+          ${F('m-sqft', 'Total roof area (sq ft)', r.totalSqFt)}
+          ${F('m-waste', 'Waste % (from report\u2019s Suggested column)', r.wastePct, '10')}
+          <div><label>Predominant pitch</label><input id="m-pitch" value="${h(r.pitch || '')}" placeholder="6/12"></div>
+          ${F('m-ridges', 'Ridges (LF)', r.ridgesLF)} ${F('m-hips', 'Hips (LF)', r.hipsLF)}
+          ${F('m-valleys', 'Valleys (LF)', r.valleysLF)} ${F('m-rakes', 'Rakes (LF)', r.rakesLF)}
+          ${F('m-eaves', 'Eaves (LF)', r.eavesLF)} ${F('m-step', 'Step flashing (LF)', r.stepFlashingLF)}
+          ${F('m-wall', 'Headwall flashing (LF)', r.wallFlashingLF)} ${F('m-pipe', 'Pipe penetrations (EA)', r.pipeCount)}
+          ${F('m-chimney', 'Chimneys (EA)', r.chimneyCount)} ${F('m-skylight', 'Skylights (EA)', r.skylightCount)}
+          ${F('m-sat', 'Satellite/dish (EA)', r.satelliteCount)}
+        </div>
+        <div class="mt row-actions"><button class="ghost" id="m-back">← Back</button><button id="m-next">Next: adjuster estimate →</button></div>`;
+      $('#ev-file', b).onchange = async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        $('#ev-status', b).textContent = 'Reading PDF…';
+        try {
+          const text = await extractPdfText(f);
+          const { raw, found, confidence } = PA.parseEagleViewText(text);
+          Object.assign(EST.raw, raw);
+          const nf = $('#ev-found', b);
+          nf.style.display = 'block';
+          nf.innerHTML = `Parsed from <b>${h(f.name)}</b> (${confidence} confidence) — found: ${found.join(', ') || 'nothing'}. Review every field before continuing.`;
+          $('#ev-status', b).textContent = 'Done — review the fields.';
+          this.stepMeasure(b, job); // re-render with filled values
+        } catch (err) {
+          $('#ev-status', b).textContent = 'Could not read that PDF — enter measurements manually.';
+        }
+      };
+      $('#m-back', b).onclick = () => { EST.step = 1; this.builderStep($('#view'), job); };
+      $('#m-next', b).onclick = () => {
+        const g = (id) => parseFloat($('#' + id, b).value) || 0;
+        EST.raw = {
+          totalSqFt: g('m-sqft'), wastePct: g('m-waste') || 10, pitch: $('#m-pitch', b).value.trim(),
+          ridgesLF: g('m-ridges'), hipsLF: g('m-hips'), valleysLF: g('m-valleys'), rakesLF: g('m-rakes'),
+          eavesLF: g('m-eaves'), stepFlashingLF: g('m-step'), wallFlashingLF: g('m-wall'),
+          pipeCount: g('m-pipe'), chimneyCount: g('m-chimney'), skylightCount: g('m-skylight'), satelliteCount: g('m-sat'),
+        };
+        EST.measurements = SE.deriveMeasurements(EST.raw);
+        EST.step = 3; this.builderStep($('#view'), job);
+      };
+    },
+
+    stepAdjuster(b, job) {
+      b.innerHTML = `
+        <div class="toolbar"><label class="muted" style="margin:0">Adjuster estimate PDF:</label>
+          <input type="file" id="xa-file" accept=".pdf" style="width:auto">
+          <span class="muted" id="xa-status"></span></div>
+        <label>Or paste the estimate text</label>
+        <textarea id="xa-text" style="min-height:100px" placeholder="Paste Xactimate line items here…">${h(EST.adjusterText.slice(0, 4000))}</textarea>
+        <div id="xa-items"></div>
+        <label style="margin-top:10px"><input type="checkbox" id="xa-covered" style="width:auto" ${EST.includeCovered ? 'checked' : ''}> Show items the adjuster already covered (default hides them)</label>
+        <div class="mt row-actions"><button class="ghost" id="xa-back">← Back</button><button id="xa-next">Build supplement →</button></div>`;
+      const showItems = () => {
+        const parsed = PA.parseXactimateText($('#xa-text', b).value);
+        EST.adjusterItems = parsed.items;
+        $('#xa-items', b).innerHTML = parsed.items.length
+          ? `<h3>Detected ${parsed.items.length} line items ${parsed.claimNumber ? '(claim ' + h(parsed.claimNumber) + ')' : ''}</h3>
+             <table><tr><th>Code</th><th>Description</th><th>Qty</th></tr>
+             ${parsed.items.map((i) => `<tr><td>${h(i.code)}</td><td>${h(i.desc)}</td><td>${h(i.qty)}</td></tr>`).join('')}</table>`
+          : '<p class="muted">No RFG line items detected — the supplement will assume nothing is covered (review the checklist on the next step).</p>';
+      };
+      $('#xa-file', b).onchange = async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        $('#xa-status', b).textContent = 'Reading PDF…';
+        try {
+          const text = await extractPdfText(f);
+          $('#xa-text', b).value = text.slice(0, 20000);
+          EST.adjusterText = text;
+          $('#xa-status', b).textContent = 'Done.';
+          showItems();
+        } catch (err) { $('#xa-status', b).textContent = 'Could not read that PDF — paste the text instead.'; }
+      };
+      $('#xa-text', b).oninput = () => { EST.adjusterText = $('#xa-text', b).value; showItems(); };
+      showItems();
+      $('#xa-back', b).onclick = () => { EST.step = 2; this.builderStep($('#view'), job); };
+      $('#xa-next', b).onclick = () => {
+        EST.adjusterText = $('#xa-text', b).value;
+        EST.includeCovered = $('#xa-covered', b).checked;
+        EST.step = 4; this.builderStep($('#view'), job);
+      };
+    },
+
+    stepSupplement(b, job, rootEl) {
+      const m = EST.measurements;
+      const rebuild = () => {
+        EST.result = SE.buildSupplement(m, { priceBook: S.priceBook, adjusterText: EST.adjusterText, includeCovered: EST.includeCovered, qtyOverrides: EST.overrides });
+      };
+      rebuild();
+      const r = EST.result;
+      const rowHtml = (it) => `<tr>
+        <td>${h(it.name)} ${it.adjusterCovered ? '<span class="covered" title="Adjuster already covered this">●</span>' : '<span class="miss" title="Adjuster missed this">●</span>'}</td>
+        <td><input type="number" step="any" data-qty="${it.key}" value="${it.qty}" style="width:90px"></td>
+        <td>${it.unit}</td><td><input type="number" step="any" data-price="${it.key}" value="${it.price}" style="width:90px"></td>
+        <td><b>${money(it.total)}</b></td></tr>`;
+      b.innerHTML = `
+        <h3>Derived measurements</h3>
+        <p class="muted">${h(m.totalSqFt)} sq ft · ${h(m.pitch || '—')} pitch · <b>${h(m.roofSQ)} SQ</b> at ${h(m.wastePct)}% waste · starter ${h(m.starterLF)} LF · drip edge ${h(m.dripEdgeLF)} LF · ridge cap ${h(m.ridgeCapLF)} LF · valleys ${h(m.valleysLF)} LF</p>
+        <h3>Supplement line items <span class="muted">(<span class="miss">●</span> missed by adjuster · <span class="covered">●</span> already covered)</span></h3>
+        <table><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Price</th><th>Total</th></tr>
+        <tbody id="sup-rows">${r.items.map(rowHtml).join('')}</tbody>
+        <tr class="total-row"><td colspan="4">Subtotal</td><td>${money(r.subtotal)}</td></tr>
+        ${r.opLines.map((l) => `<tr><td colspan="4">${h(l.name)} <span class="muted">(${r.trades.join(', ')})</span></td><td>${money(l.total)}</td></tr>`).join('')}
+        <tr class="total-row"><td colspan="4">Supplement total</td><td>${money(r.total)}</td></tr></table>
+        ${r.trades.length < 3 ? `<div class="note">Only ${r.trades.length} trade(s) on this supplement — O&amp;P needs 3+. Add a trade (e.g. gutters, paint) and it applies automatically.</div>` : ''}
+        <div class="mt row-actions">
+          <button class="ghost" id="sup-back">← Back</button>
+          <button class="ghost" id="sup-csv">Export CSV</button>
+          <button class="ghost" id="sup-print">Print report</button>
+          <button id="sup-save">Save supplement</button>
+        </div>
+        <div class="note">Prices come from Settings → price book. Qty edits recalculate live; overrides are saved with the supplement.</div>`;
+      const relayout = () => {
+        $$('[data-qty]', b).forEach((inp) => { EST.overrides[inp.dataset.qty] = parseFloat(inp.value) || 0; });
+        rebuild();
+        const r2 = EST.result;
+        $('#sup-rows', b).innerHTML = r2.items.map(rowHtml).join('');
+        bindInputs();
+      };
+      const bindInputs = () => {
+        $$('[data-qty]', b).forEach((inp) => inp.onchange = relayout);
+        $$('[data-price]', b).forEach((inp) => inp.onchange = () => {
+          S.priceBook[inp.dataset.price] = parseFloat(inp.value) || 0;
+          S.savePriceBook().then(relayout);
+        });
+      };
+      bindInputs();
+      $('#sup-back', b).onclick = () => { EST.step = 3; this.builderStep($('#view'), job); };
+      $('#sup-csv', b).onclick = () => {
+        const r3 = EST.result;
+        let csv = 'Item,Qty,Unit,Price,Total,Adjuster covered\n';
+        for (const it of r3.items) csv += `"${it.name}",${it.qty},${it.unit},${it.price},${it.total},${it.adjusterCovered ? 'yes' : 'no'}\n`;
+        for (const l of r3.opLines) csv += `"${l.name}",${l.qty},${l.unit},${l.price},${l.total},\n`;
+        csv += `"SUPPLEMENT TOTAL",,,,${r3.total},\n`;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = 'supplement-' + (EST.claim.claim_number || 'draft') + '.csv';
+        a.click();
+      };
+      $('#sup-print', b).onclick = () => this.printReport(job);
+      $('#sup-save', b).onclick = async () => {
+        const r4 = EST.result;
+        await db.insert('estimates', {
+          job_id: EST.jobId,
+          claim_info_json: JSON.stringify(EST.claim),
+          measurements_json: JSON.stringify(m),
+          adjuster_items_json: JSON.stringify(EST.adjusterItems),
+          supplement_items_json: JSON.stringify(r4.items.concat(r4.opLines)),
+          totals_json: JSON.stringify({ subtotal: r4.subtotal, total: r4.total, trades: r4.trades }),
+        });
+        await db.update('jobs', EST.jobId, { measurements_json: JSON.stringify(m) });
+        alert('Supplement saved.');
+        go('estimates');
+      };
+    },
+
+    printReport(job) {
+      const r = EST.result, c = EST.claim, co = S.settings;
+      const rows = r.items.map((it) => `<tr><td>${h(it.name)}</td><td>${it.qty} ${it.unit}</td><td>${money(it.price)}</td><td>${money(it.total)}</td></tr>`).join('') +
+        r.opLines.map((l) => `<tr><td>${h(l.name)}</td><td></td><td></td><td>${money(l.total)}</td></tr>`).join('');
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Supplement — ${h(c.claim_number || '')}</title>
+        <style>body{font-family:Helvetica,Arial,sans-serif;margin:48px;color:#111}
+        h1{font-size:22px;margin:0}h2{font-size:15px;margin:26px 0 8px;border-bottom:2px solid #111;padding-bottom:4px}
+        .head{display:flex;justify-content:space-between;align-items:flex-start}
+        table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #ccc}
+        .tot{font-weight:bold;font-size:15px}.mut{color:#666;font-size:12px}</style></head><body>
+        <div class="head"><div><h1>${h(co.company_name)}</h1><div class="mut">${h(co.company_address)} · ${h(co.company_phone)} · ${h(co.company_email)}<br>${h(co.company_license)}</div></div>
+        <div style="text-align:right"><h1>Supplement</h1><div class="mut">${new Date().toLocaleDateString()}</div></div></div>
+        <h2>Claim</h2><table>
+        <tr><td>Property</td><td><b>${h(c.address)}</b></td></tr>
+        <tr><td>Claim #</td><td>${h(c.claim_number)}</td></tr>
+        <tr><td>Carrier / Adjuster</td><td>${h(c.carrier)} / ${h(c.adjuster)}</td></tr>
+        <tr><td>Date of loss</td><td>${h(c.date_of_loss)}</td></tr></table>
+        <h2>Measurements</h2><p>${h(EST.measurements.totalSqFt)} sq ft · ${h(EST.measurements.pitch || '')} pitch · ${h(EST.measurements.roofSQ)} SQ at ${h(EST.measurements.wastePct)}% waste</p>
+        <h2>Supplement items</h2><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${rows}
+        <tr class="tot"><td colspan="3">Subtotal</td><td>${money(r.subtotal)}</td></tr>
+        <tr class="tot"><td colspan="3">Total</td><td>${money(r.total)}</td></tr></table>
+        <p class="mut">Trades on this supplement: ${h(r.trades.join(', '))}. O&amp;P applied per 3-trade rule. Prices are planning figures — final pricing per Xactimate.</p>
+        </body></html>`;
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 400);
+    },
+
+    async detail(el, id) {
+      const erows = await db.list('estimates', { select: '*, jobs(address)', where: { id } });
+      const e = erows[0] || null;
+      if (e) e.address = e.jobs ? e.jobs.address : null;
+      if (!e) { el.innerHTML = '<p class="muted">Not found.</p>'; return; }
+      const items = JSON.parse(e.supplement_items_json || '[]');
+      const t = JSON.parse(e.totals_json || '{}');
+      const c = JSON.parse(e.claim_info_json || '{}');
+      el.innerHTML = `<div class="toolbar"><button class="ghost small" id="d-back">← All estimates</button></div>
+        <div class="panel"><h2>Supplement — ${h(e.address || '')}</h2>
+        <p class="muted">${fmtDate(e.created_at)} · Claim ${h(c.claim_number || '—')} · ${h(c.carrier || '')}</p>
+        <table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+        ${items.map((it) => `<tr><td>${h(it.name)}</td><td>${it.qty} ${it.unit || ''}</td><td>${money(it.price)}</td><td>${money(it.total)}</td></tr>`).join('')}
+        <tr class="total-row"><td colspan="3">Total</td><td>${money(t.total)}</td></tr></table></div>`;
+      $('#d-back', el).onclick = () => go('estimates');
+    },
+  };
+
+  // ---------------- Comms ----------------
+  window.VIEWS.comms = {
+    actions() { return `<button class="small" id="btn-new-draft">+ New draft</button>`; },
+    bindActions(bar) { $('#btn-new-draft', bar).onclick = () => go('comms', { new: true }); },
+    async render(el, arg) {
+      if (arg && (arg.new || arg.newFor)) return this.composer(el, arg.newFor || null, null);
+      if (arg && typeof arg === 'number') return this.composer(el, null, arg);
+      const kf = this._kf || '', sf = this._sf || '';
+      const where = {};
+      if (kf) where.kind = kf;
+      if (sf) where.status = sf;
+      const drafts = await db.list('drafts', { select: '*, leads(name)', where, orderBy: 'created_at', order: 'desc' });
+      drafts.forEach((d) => { d.lead_name = d.leads ? d.leads.name : null; });
+      el.innerHTML = `
+        <div class="toolbar">
+          <select id="c-kf" style="width:auto"><option value="">All kinds</option>
+            ${['email', 'text', 'call'].map((k) => `<option ${kf === k ? 'selected' : ''}>${k}</option>`).join('')}</select>
+          <select id="c-sf" style="width:auto"><option value="">All statuses</option>
+            ${['draft', 'approved', 'sent'].map((s) => `<option ${sf === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
+        </div>
+        <div class="panel"><table><tr><th></th><th>To</th><th>Subject / preview</th><th>Status</th><th></th></tr>
+        ${drafts.map((d) => `<tr><td>${badge(d.kind)}</td><td>${h(d.lead_name || '—')}</td>
+          <td><a href="#" data-draft="${d.id}">${h(d.subject || d.body.slice(0, 60))}</a></td>
+          <td>${badge(d.status)}</td>
+          <td><div class="row-actions">${d.status === 'draft' ? `<button class="small" data-approve="${d.id}">Approve</button>` : ''}</div></td></tr>`).join('')
+          || '<tr><td colspan="5" class="muted">No drafts. Nothing waiting on your tap.</td></tr>'}
+        </table></div>
+        <div class="note">Free tier: drafts live here until you approve them. Email goes out as a Gmail draft (ask Muse in chat to file it — you send it yourself). Texts and calls light up when the owner adds Twilio. Nothing ever sends on its own.</div>`;
+      $('#c-kf', el).onchange = (e) => { this._kf = e.target.value; this.render(el); };
+      $('#c-sf', el).onchange = (e) => { this._sf = e.target.value; this.render(el); };
+      $$('[data-draft]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('comms', +a.dataset.draft); });
+      $$('[data-approve]', el).forEach((b) => b.onclick = async () => { await db.update('drafts', +b.dataset.approve, { status: 'approved' }); this.render(el); });
+    },
+
+    async composer(el, leadId, draftId) {
+      const d = draftId ? await db.get('drafts', draftId) : null;
+      const leads = await db.list('leads', { select: 'id, name, phone, email, address, city, zip', orderBy: 'name' });
+      const jobs = await db.list('jobs', { select: 'id, address, claim_number, carrier', orderBy: 'created_at', order: 'desc', limit: 30 });
+      const selLead = d?.lead_id || leadId || '';
+      el.innerHTML = `
+        <div class="toolbar"><button class="ghost small" id="back">← All drafts</button></div>
+        <div class="two-col">
+        <div class="panel"><h2>${d ? 'Edit draft' : 'New draft'}</h2>
+          <div class="form-grid">
+            <div><label>Kind</label><select id="d-kind">
+              ${['email', 'text', 'call'].map((k) => `<option ${(d?.kind || 'email') === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
+            <div><label>To (lead)</label><select id="d-lead"><option value="">— none —</option>
+              ${leads.map((l) => `<option value="${l.id}" ${+selLead === l.id ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select></div>
+          </div>
+          <label>Template</label><select id="d-tpl"><option value="">— start blank —</option>
+            ${TEMPLATES.map((t) => `<option value="${t.id}">${h(t.name)}</option>`).join('')}</select>
+          <div id="d-subject-wrap"><label>Subject</label><input id="d-subject" value="${h(d?.subject || '')}"></div>
+          <label>Body</label><textarea id="d-body" style="min-height:220px">${h(d?.body || '')}</textarea>
+          <div class="mt row-actions">
+            <button class="ghost" id="d-ai">Copy AI prompt</button>
+            <button class="ghost" id="d-save">Save draft</button>
+            <button id="d-approve">${d && d.status !== 'draft' ? 'Save' : 'Save & approve'}</button>
+            ${d ? `<button class="danger" id="d-del">Delete</button>` : ''}
+          </div>
+          <div class="note" id="ai-note" style="display:none">Prompt copied — paste it to Muse in chat, paste the rewrite back here. That\u2019s the free AI loop until an API key lands in Settings.</div>
+        </div>
+        <div class="panel"><h2>Merge fields</h2>
+          <p class="muted">Templates fill these from the lead + job. <code>{{custom}}</code> is yours to type per draft.</p>
+          <table><tr><th>Field</th><th>Value</th></tr>
+          <tbody id="merge-rows"><tr><td colspan="2" class="muted">Pick a lead to preview.</td></tr></tbody></table>
+          <h3 class="mt">Context job (for {{job_address}} etc.)</h3>
+          <select id="d-job"><option value="">— none —</option>
+            ${jobs.map((j) => `<option value="${j.id}" ${d?.job_id === j.id ? 'selected' : ''}>${h(j.address)}</option>`).join('')}</select>
+        </div></div>`;
+      const ctxFor = () => {
+        const lid = $('#d-lead', el).value;
+        const l = leads.find((x) => x.id === +lid) || {};
+        const jid = $('#d-job', el).value;
+        const j = jobs.find((x) => x.id === +jid) || {};
+        const street = (l.address || '').replace(/^\d+\s*/, '');
+        return { name: (l.name || '').split(' ')[0], address: l.address || '', street: street || l.address || '', city: l.city || 'Oklahoma City', zip: l.zip || '', job_address: j.address || '', claim_number: j.claim_number || '', carrier: j.carrier || '', custom: '' };
+      };
+      const refreshMerge = () => {
+        const c = ctxFor();
+        $('#merge-rows', el).innerHTML = Object.entries(c).map(([k, v]) => `<tr><td><code>{{${k}}}</code></td><td>${h(v) || '<span class="muted">—</span>'}</td></tr>`).join('');
+      };
+      $('#d-lead', el).onchange = refreshMerge;
+      $('#d-job', el).onchange = refreshMerge;
+      refreshMerge();
+      $('#d-tpl', el).onchange = (e) => {
+        const t = TEMPLATES.find((x) => x.id === e.target.value);
+        if (!t) return;
+        const filled = fillTemplate(t, ctxFor());
+        $('#d-kind', el).value = t.kind;
+        $('#d-subject', el).value = filled.subject;
+        $('#d-body', el).value = filled.body;
+      };
+      $('#d-kind', el).onchange = (e) => { $('#d-subject-wrap', el).style.display = e.target.value === 'email' ? '' : 'none'; };
+      $('#d-kind', el).dispatchEvent(new Event('change'));
+      $('#back', el).onclick = () => go('comms');
+      $('#d-ai', el).onclick = async () => {
+        const prompt = aiPromptForDraft($('#d-kind', el).value, $('#d-subject', el).value, $('#d-body', el).value, ctxFor());
+        await navigator.clipboard.writeText(prompt);
+        $('#ai-note', el).style.display = 'block';
+      };
+      const collect = () => ({
+        kind: $('#d-kind', el).value,
+        lead_id: $('#d-lead', el).value || null,
+        job_id: $('#d-job', el).value || null,
+        subject: $('#d-subject', el).value.trim(),
+        body: $('#d-body', el).value.trim(),
+      });
+      const save = async (status) => {
+        const v = collect();
+        if (!v.body) { alert('Body is required.'); return null; }
+        if (d) await db.update('drafts', draftId, { kind: v.kind, lead_id: v.lead_id, job_id: v.job_id, subject: v.subject, body: v.body, status });
+        else await db.insert('drafts', { kind: v.kind, lead_id: v.lead_id, job_id: v.job_id, subject: v.subject, body: v.body, status });
+        return true;
+      };
+      $('#d-save', el).onclick = async () => { if (await save(d ? d.status : 'draft')) go('comms'); };
+      $('#d-approve', el).onclick = async () => { if (await save('approved')) go('comms'); };
+      const del = $('#d-del', el);
+      if (del) del.onclick = async () => { if (confirm('Delete this draft?')) { await db.remove('drafts', draftId); go('comms'); } };
+    },
+  };
+
+  // ---------------- Campaigns ----------------
+  window.VIEWS.campaigns = {
+    actions() { return `<button class="small" id="btn-new-camp">+ New campaign</button>`; },
+    bindActions(bar) { $('#btn-new-camp', bar).onclick = () => go('campaigns', 'new'); },
+    async render(el, arg) {
+      if (arg === 'new') return this.builder(el);
+      if (typeof arg === 'number') return this.detail(el, arg);
+      const camps = await db.list('campaigns', { select: '*, jobs(address)', orderBy: 'created_at', order: 'desc' });
+      const allTargets = await db.list('campaign_targets', { select: 'campaign_id, status' });
+      for (const c of camps) {
+        c.job_address = c.jobs ? c.jobs.address : null;
+        const tc = allTargets.filter((t) => t.campaign_id === c.id);
+        c.targets = tc.length;
+        c.approved = tc.filter((t) => t.status === 'approved').length;
+      }
+      el.innerHTML = `<div class="panel"><table><tr><th>Campaign</th><th>Finished job</th><th>Targets</th><th>Approved</th><th>Status</th></tr>
+        ${camps.map((c) => `<tr><td><a href="#" data-camp="${c.id}">${h(c.name)}</a></td><td class="muted">${h(c.job_address || '—')}</td><td>${c.targets}</td><td>${c.approved || 0}</td><td>${badge(c.status)}</td></tr>`).join('')
+          || '<tr><td colspan="5" class="muted">No campaigns yet. Finish a job, then canvass its street.</td></tr>'}
+        </table></div>
+        <div class="note">The free loop: add neighbor addresses by hand (or paste a list), generate drafts from templates, approve them here. Skip-trace auto-enrichment and Twilio sending get wired when the owner adds the paid integrations. Every text includes the STOP opt-out line; keep a consent record before any cold texting.</div>`;
+      $$('[data-camp]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('campaigns', +a.dataset.camp); });
+    },
+
+    async builder(el) {
+      const jobs = await db.list('jobs', { select: 'id, address', where: { status: 'completed' }, orderBy: 'created_at', order: 'desc' });
+      el.innerHTML = `<div class="toolbar"><button class="ghost small" id="back">← All campaigns</button></div>
+        <div class="panel"><h2>New neighborhood campaign</h2>
+        <label>Campaign name</label><input id="cp-name" placeholder="e.g. NW 36th St canvass — Oct 2026">
+        <label>Finished job (anchors the outreach)</label><select id="cp-job"><option value="">— pick —</option>
+          ${jobs.map((j) => `<option value="${j.id}">${h(j.address)}</option>`).join('')}</select>
+        <label>Neighbor addresses (one per line — street, number, whatever you\u2019ve got)</label>
+        <textarea id="cp-addrs" placeholder="2321 NW 36th St&#10;2325 NW 36th St&#10;…"></textarea>
+        <div class="mt"><button id="cp-create">Create campaign</button></div>
+        <div class="note">Names and phone numbers fill in automatically once skip tracing is connected. Until then, add what you know per target on the next screen.</div></div>`;
+      $('#back', el).onclick = () => go('campaigns');
+      $('#cp-create', el).onclick = async () => {
+        const name = $('#cp-name', el).value.trim();
+        const jobId = $('#cp-job', el).value || null;
+        if (!name) { alert('Name the campaign.'); return; }
+        const camp = await db.insert('campaigns', { name, job_id: jobId });
+        const campId = camp.id;
+        const addrs = $('#cp-addrs', el).value.split('\n').map((s) => s.trim()).filter(Boolean);
+        for (const a of addrs) await db.insert('campaign_targets', { campaign_id: campId, address: a });
+        go('campaigns', campId);
+      };
+    },
+
+    async detail(el, id) {
+      const crows = await db.list('campaigns', { select: '*, jobs(address)', where: { id } });
+      const c = crows[0] || null;
+      if (c) c.job_address = c.jobs ? c.jobs.address : null;
+      const targets = await db.list('campaign_targets', { select: '*, drafts(kind, status, subject)', where: { campaign_id: id }, orderBy: 'id' });
+      targets.forEach((t) => { t.kind = t.drafts ? t.drafts.kind : null; t.dstatus = t.drafts ? t.drafts.status : null; t.subject = t.drafts ? t.drafts.subject : null; });
+      const jobCtx = { job_address: c.job_address || '' };
+      el.innerHTML = `<div class="toolbar"><button class="ghost small" id="back">← All campaigns</button></div>
+        <div class="panel"><h2>${h(c.name)}</h2>
+        <p class="muted">Anchored on: ${h(c.job_address || '—')} · ${badge(c.status)}</p>
+        <div class="row-actions"><button class="small" id="cp-gen">Generate drafts for all targets</button>
+        <button class="ghost small" id="cp-add">+ Add target</button></div></div>
+        <div class="panel"><table><tr><th>Address</th><th>Name</th><th>Phone</th><th>Draft</th><th>Status</th><th></th></tr>
+        ${targets.map((t) => `<tr><td>${h(t.address)}</td>
+          <td><input data-tname="${t.id}" value="${h(t.name)}" placeholder="—" style="width:130px"></td>
+          <td><input data-tphone="${t.id}" value="${h(t.phone)}" placeholder="—" style="width:130px"></td>
+          <td>${t.draft_id ? `${badge(t.kind)} ${badge(t.dstatus)} <span class="muted">${h(t.subject || '')}</span>` : '<span class="muted">none</span>'}</td>
+          <td>${badge(t.status)}</td>
+          <td><div class="row-actions">
+            ${t.draft_id && t.dstatus === 'draft' ? `<button class="small" data-tapprove="${t.draft_id}" data-tid="${t.id}">Approve</button>` : ''}
+          </div></td></tr>`).join('') || '<tr><td colspan="6" class="muted">No targets yet.</td></tr>'}
+        </table></div>
+        <div class="note">Drafts generate from the “we just finished your neighbor\u2019s roof” templates with each address merged in. Approve each one — nothing sends itself.</div>`;
+      $('#back', el).onclick = () => go('campaigns');
+      $('#cp-add', el).onclick = async () => {
+        const a = prompt('Neighbor address:');
+        if (a) { await db.insert('campaign_targets', { campaign_id: id, address: a.trim() }); go('campaigns', id); }
+      };
+      $('#cp-gen', el).onclick = async () => {
+        const emailTpl = TEMPLATES.find((t) => t.id === 'neighbor_done_email');
+        const textTpl = TEMPLATES.find((t) => t.id === 'hail_check_text');
+        let n = 0;
+        for (const t of targets) {
+          if (t.draft_id) continue;
+          const street = t.address.replace(/^\d+\s*/, '');
+          const ctx = Object.assign({}, jobCtx, { name: (t.name || 'there').split(' ')[0], address: t.address, street, city: 'Oklahoma City' });
+          const filled = fillTemplate(textTpl, ctx);
+          const nd = await db.insert('drafts', { kind: 'text', subject: filled.subject, body: filled.body, status: 'draft' });
+          await db.update('campaign_targets', t.id, { draft_id: nd.id, status: 'drafted' });
+          n++;
+        }
+        alert('Generated ' + n + ' text drafts. Review and approve each one.');
+        go('campaigns', id);
+      };
+      $$('[data-tapprove]', el).forEach((b) => b.onclick = async () => {
+        await db.update('drafts', +b.dataset.tapprove, { status: 'approved' });
+        await db.update('campaign_targets', +b.dataset.tid, { status: 'approved' });
+        go('campaigns', id);
+      });
+      const saveField = async (tid, field, val) => { await db.update('campaign_targets', tid, { [field]: val }); };
+      $$('[data-tname]', el).forEach((i) => i.onchange = () => saveField(i.dataset.tname, 'name', i.value.trim()));
+      $$('[data-tphone]', el).forEach((i) => i.onchange = () => saveField(i.dataset.tphone, 'phone', i.value.trim()));
+    },
+  };
+
+  // ---------------- Settings ----------------
+  window.VIEWS.settings = {
+    async render(el) {
+      const pb = S.priceBook;
+      const itemNames = {};
+      for (const it of SE.ITEMS) itemNames[it.key] = it.name;
+      el.innerHTML = `
+        <div class="two-col">
+        <div>
+          <div class="panel"><h2>Company</h2>
+            <label>Company name</label><input id="s-coname" value="${h(S.settings.company_name || '')}">
+            <div class="form-grid">
+              <div><label>Phone</label><input id="s-cophone" value="${h(S.settings.company_phone || '')}"></div>
+              <div><label>Email</label><input id="s-coemail" value="${h(S.settings.company_email || '')}"></div>
+            </div>
+            <label>Address</label><input id="s-coaddr" value="${h(S.settings.company_address || '')}">
+            <label>License</label><input id="s-colic" value="${h(S.settings.company_license || '')}">
+            <div class="mt"><button id="s-save-co">Save</button></div>
+          </div>
+          <div class="panel"><h2>Integrations <span class="muted">(owner adds the paid ones later)</span></h2>
+            <label>Twilio — Account SID</label><input id="s-tw-sid" value="${h(S.settings.twilio_sid || '')}" placeholder="Not connected">
+            <label>Twilio — Auth token</label><input id="s-tw-tok" type="password" value="${h(S.settings.twilio_token || '')}" placeholder="Not connected">
+            <label>Twilio — Phone number</label><input id="s-tw-phone" value="${h(S.settings.twilio_phone || '')}" placeholder="e.g. +14055550100">
+            <label>Skip trace provider</label><select id="s-st-prov">
+              ${['', 'batch', 'propstream', 'other'].map((p) => `<option value="${p}" ${S.settings.skiptrace_provider === p ? 'selected' : ''}>${p || '— not connected —'}</option>`).join('')}</select>
+            <label>Skip trace API key</label><input id="s-st-key" type="password" value="${h(S.settings.skiptrace_key || '')}" placeholder="Not connected">
+            <div class="mt"><button id="s-save-int">Save integrations</button></div>
+            <div class="note">EagleView and Xactimate have no self-serve API — the app ingests their PDFs (Estimates tab). A real two-way sync needs a Verisk/EagleView partnership, which is the owner\u2019s call later.</div>
+          </div>
+          <div class="panel"><h2>Data</h2>
+            <div class="row-actions"><button class="ghost" id="s-backup">Download backup (JSON)</button>
+            <button class="danger" id="s-clear">Delete sample data</button></div>
+            <div class="note">Backup everything before the business-owner handoff — it restores into a fresh install.</div>
+            <h3>Import v1 desktop backup</h3>
+            <p class="muted">Restore a backup JSON downloaded from the old desktop .exe into the cloud.</p>
+            <input type="file" id="s-import" accept=".json,application/json">
+            <p class="form-err" id="s-import-err"></p>
+          </div>
+          <div class="panel"><h2>Session</h2>
+            <p class="muted">Signed in as ${h(S.user && S.user.email ? S.user.email : '—')}</p>
+            <div class="row-actions"><button class="ghost" id="s-signout">Sign out</button></div>
+          </div>
+        </div>
+        <div class="panel"><h2>Price book <span class="muted">(planning defaults — set real Xactimate rates)</span></h2>
+          <table><tr><th>Item</th><th>Unit</th><th>Price</th></tr>
+          ${SE.ITEMS.map((it) => `<tr><td>${h(it.name)}</td><td class="muted">${it.unit}</td>
+            <td><input type="number" step="any" data-pb="${it.key}" value="${pb[it.key] || 0}" style="width:100px"></td></tr>`).join('')}
+          </table><div class="mt"><button id="s-save-pb">Save price book</button></div></div>
+        </div>`;
+      $('#s-save-co', el).onclick = async () => {
+        await S.saveSetting('company_name', $('#s-coname', el).value.trim());
+        await S.saveSetting('company_phone', $('#s-cophone', el).value.trim());
+        await S.saveSetting('company_email', $('#s-coemail', el).value.trim());
+        await S.saveSetting('company_address', $('#s-coaddr', el).value.trim());
+        await S.saveSetting('company_license', $('#s-colic', el).value.trim());
+        alert('Company info saved.');
+      };
+      $('#s-save-int', el).onclick = async () => {
+        await S.saveSetting('twilio_sid', $('#s-tw-sid', el).value.trim());
+        await S.saveSetting('twilio_token', $('#s-tw-tok', el).value.trim());
+        await S.saveSetting('twilio_phone', $('#s-tw-phone', el).value.trim());
+        await S.saveSetting('skiptrace_provider', $('#s-st-prov', el).value);
+        await S.saveSetting('skiptrace_key', $('#s-st-key', el).value.trim());
+        alert('Integration settings saved. Keys stay on this machine.');
+      };
+      $('#s-save-pb', el).onclick = async () => {
+        $$('[data-pb]', el).forEach((i) => { S.priceBook[i.dataset.pb] = parseFloat(i.value) || 0; });
+        await S.savePriceBook();
+        alert('Price book saved.');
+      };
+      $('#s-backup', el).onclick = async () => {
+        const json = await db.backup();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+        a.download = 'highground-hq-backup.json';
+        a.click();
+      };
+      $('#s-clear', el).onclick = async () => {
+        if (!confirm('Delete all SAMPLE leads? (Real jobs and drafts stay.)')) return;
+        await db.removeWhere('leads', { name: { op: 'like', val: 'SAMPLE%' } });
+        alert('Sample leads deleted.');
+        go('settings');
+      };
+      $('#s-signout', el).onclick = () => window.HQ.auth.signOut();
+      $('#s-import', el).onchange = async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const ok = confirm('Replace ALL cloud data with this desktop backup file? Leads, jobs, estimates, drafts and campaigns currently in the cloud will be wiped first, then the file is imported. This cannot be undone.');
+        e.target.value = '';
+        if (!ok) return;
+        try {
+          await db.importBackup(await f.text(), { wipe: true });
+          alert('Import complete — reloading.');
+          location.reload();
+        } catch (err) {
+          $('#s-import-err', el).textContent = 'Import failed: ' + err.message;
+        }
+      };
+    },
+  };
+})();
+</script>
+</body>
+</html>
