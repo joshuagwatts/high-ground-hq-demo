@@ -12,21 +12,26 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text);
   font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-#app { display: flex; height: 100vh; }
-#sidebar { width: 228px; background: var(--panel); border-right: 1px solid var(--line);
-  display: flex; flex-direction: column; padding: 18px 14px; }
-.brand { display: flex; gap: 10px; align-items: center; margin-bottom: 22px; }
-.brand-mark { width: 40px; height: 40px; border-radius: 10px; background: var(--accent);
+#app { display: flex; flex-direction: column; height: 100vh; }
+#topheader { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { display: flex; gap: 10px; align-items: center; }
+.brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent);
   color: #14100a; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-.brand-name { font-weight: 700; }
+.brand-name { font-weight: 700; font-size: 15px; }
 .brand-sub { color: var(--muted); font-size: 12px; }
-#nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-#nav button { background: none; border: none; color: var(--muted); text-align: left;
-  padding: 10px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-#nav button:hover { background: var(--panel2); color: var(--text); }
-#nav button.active { background: var(--panel2); color: var(--accent); font-weight: 600; }
-.side-foot { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
-.integ { display: flex; align-items: center; gap: 8px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+#global-search { width: 280px; margin: 0; }
+#nav { display: flex; gap: 2px; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 0 12px; overflow-x: auto; }
+#nav button { background: none; border: none; border-bottom: 3px solid transparent; border-radius: 0;
+  color: var(--muted); padding: 12px 16px 9px; font-size: 14px; font-weight: 600; cursor: pointer;
+  white-space: nowrap; display: inline-flex; flex-direction: row; align-items: center; gap: 7px; }
+#nav button:hover { color: var(--text); background: var(--panel2); }
+#nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-ico { font-size: 13px; opacity: .8; }
+.integ-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.integ { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .integ em { font-style: normal; opacity: .7; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .dot.ok { background: var(--green); } .dot.no { background: #5a6577; }
@@ -101,18 +106,61 @@ pre.copybox { background: var(--bg); border: 1px solid var(--line); border-radiu
 .small { font-size: 12px; }
 button.primary, .btn.primary { background: var(--accent); color: #14100a; }
 
-/* ---- phones (<=720px): sidebar becomes a compact top bar, everything stacks ---- */
+/* ---- consolidation additions: audit, pipeline, scopes, docs, flyer ---- */
+.scope-row { display: flex; gap: 18px; flex-wrap: wrap; margin: 8px 0; }
+.scope-check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px;
+  color: var(--text); text-transform: none; letter-spacing: 0; margin: 4px 0; cursor: pointer; }
+.scope-group { border: 1px solid var(--line); border-radius: 10px; margin: 10px 0; padding: 4px 14px 14px; }
+.scope-group summary { cursor: pointer; font-weight: 700; padding: 10px 0; color: var(--accent); }
+.audit td { vertical-align: top; }
+.adot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.adot.flag { background: var(--red); } .adot.info { background: var(--blue); } .adot.pass { background: var(--green); }
+tr.audit-flag td { background: rgba(242, 109, 109, .07); }
+tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--accent);
+  text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
+.pipeline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.pipeline button:disabled { opacity: 1; cursor: default; background: var(--accent); color: #14100a; }
+.pipeline button.done { background: #173a2c; color: var(--green); }
+.pipe-arrow { color: var(--muted); }
+.doc-row { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--line); }
+
+/* ---- flyer (print-ready) ---- */
+.flyer { background: #fff; color: #111; border-radius: 12px; padding: 48px; max-width: 720px; margin: 0 auto; }
+.flyer-brand { display: flex; gap: 14px; align-items: center; margin-bottom: 28px; }
+.flyer-mark { width: 56px; height: 56px; border-radius: 12px; background: #f0a22e; color: #14100a;
+  font-weight: 800; font-size: 22px; display: flex; align-items: center; justify-content: center; }
+.flyer-name { font-weight: 800; font-size: 20px; color: #111; }
+.flyer-sub { color: #555; font-size: 13px; }
+.flyer-head { font-size: 44px; line-height: 1.15; color: #111; margin: 0 0 10px; }
+.flyer-job { font-size: 17px; color: #444; margin: 0 0 22px; }
+.flyer-list { font-size: 16px; line-height: 1.7; color: #222; padding-left: 22px; margin: 0 0 22px; }
+.flyer-closer { font-size: 16px; color: #333; margin: 0 0 30px; }
+.flyer-contact { display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  border-top: 3px solid #f0a22e; padding-top: 22px; }
+.flyer-phone { font-size: 26px; font-weight: 800; color: #111; }
+.flyer-qr { text-align: center; }
+
+@media print {
+  #topheader, #nav, #topbar, .no-print, .note.no-print { display: none !important; }
+  body { background: #fff; }
+  #app { display: block; height: auto; }
+  #view { padding: 0; overflow: visible; }
+  .flyer { border-radius: 0; max-width: none; }
+}
+
+/* ---- phones (<=720px): header compacts, tabs scroll, everything stacks ---- */
 @media (max-width: 720px) {
   #app { flex-direction: column; height: auto; min-height: 100vh; }
-  #sidebar { width: 100%; flex-direction: row; align-items: center; gap: 10px;
-    padding: 10px 12px; border-right: none; border-bottom: 1px solid var(--line); }
+  #topheader { padding: 8px 12px; flex-wrap: wrap; gap: 8px; }
   .brand { margin-bottom: 0; flex-shrink: 0; }
   .brand-sub { display: none; }
   .brand-mark { width: 32px; height: 32px; font-size: 13px; }
   .brand-name { font-size: 14px; }
-  #nav { flex-direction: row; overflow-x: auto; gap: 6px; flex: 1; padding-bottom: 2px; }
-  #nav button { white-space: nowrap; padding: 10px 12px; flex-shrink: 0; }
-  .side-foot { display: none; }
+  #global-search { width: 100%; order: 3; }
+  #user-email { display: none; }
+  #nav { padding: 0 4px; gap: 6px; padding-bottom: 2px; }
+  #nav button { padding: 10px 12px 7px; font-size: 13px; flex-shrink: 0; }
   main { width: 100%; }
   #topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
   #topbar h1 { font-size: 18px; }
@@ -131,35 +179,40 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
   .form-grid { grid-template-columns: 1fr; }
   .cards { grid-template-columns: 1fr 1fr; }
   .login-panel { margin: 4vh auto; }
+  .pipeline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+  .pipeline button { flex-shrink: 0; }
+  .flyer { padding: 28px 22px; }
+  .flyer-head { font-size: 32px; }
+  .flyer-contact { flex-direction: column; align-items: flex-start; }
+  .doc-row { flex-direction: column; align-items: stretch; }
 }
 </style>
 </head>
 <body>
 <div id="app">
-  <aside id="sidebar">
+  <header id="topheader">
     <div class="brand">
       <div class="brand-mark">HG</div>
       <div>
         <div class="brand-name">High Ground HQ</div>
-        <div class="brand-sub">Roofing CRM</div>
+        <div class="brand-sub" id="brand-company">Roofing CRM</div>
       </div>
     </div>
-    <nav id="nav">
-      <button data-view="dashboard" class="active">Dashboard</button>
-      <button data-view="leads">Leads</button>
-      <button data-view="jobs">Jobs</button>
-      <button data-view="estimates">Estimates</button>
-      <button data-view="comms">Comms</button>
-      <button data-view="campaigns">Campaigns</button>
-      <button data-view="settings">Settings</button>
-    </nav>
-    <div class="side-foot">
-      <div class="integ"><span class="dot ok"></span>Gmail drafts <em>via Muse</em></div>
-      <div class="integ"><span class="dot no"></span>Twilio <em>owner adds</em></div>
-      <div class="integ"><span class="dot no"></span>Skip trace <em>owner adds</em></div>
-      <div class="ver">demo · fake data</div>
+    <div class="header-right">
+      <input id="global-search" placeholder="Name, address, or job #" autocomplete="off">
+      <span id="user-email" class="muted small"></span>
+      <button class="ghost small" id="btn-signout">Sign out</button>
     </div>
-  </aside>
+  </header>
+  <nav id="nav">
+    <button data-view="dashboard" class="active"><span class="tab-ico">◈</span>Dashboard</button>
+    <button data-view="leads"><span class="tab-ico">◎</span>Leads</button>
+    <button data-view="jobs"><span class="tab-ico">⌂</span>Jobs</button>
+    <button data-view="estimates"><span class="tab-ico">≣</span>Estimates</button>
+    <button data-view="comms"><span class="tab-ico">✉</span>Comms</button>
+    <button data-view="campaigns"><span class="tab-ico">◐</span>Campaigns</button>
+    <button data-view="settings"><span class="tab-ico">⚙</span>Settings</button>
+  </nav>
   <main>
     <header id="topbar">
       <h1 id="view-title">Dashboard</h1>
@@ -674,8 +727,125 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
     { key: 'permit',       name: 'Building permit',                       unit: 'EA', trade: 'admin',     qty: () => 1 },
   ];
 
-  // Xactimate RFG codes / keywords that mark an item as already covered by
-  // the adjuster's estimate. Anything not covered is a supplement candidate.
+  // ---- scopes: the whole-property builder. Roof is the default; each
+  // estimate enables the scopes its claim needs. Stored per-estimate in
+  // scope_json. ------------------------------------------------------------
+  const SCOPES = [
+    { key: 'roof',     name: 'Roof' },
+    { key: 'exterior', name: 'Exterior — siding / soffit / fascia / gutters' },
+    { key: 'fence',    name: 'Fence' },
+    { key: 'interior', name: 'Interior' },
+    { key: 'site',     name: 'Site / detached structures' },
+  ];
+
+  // Build phases: the report sorts line items in the order the work happens.
+  const PHASES = ['demolition', 'dry-in', 'roofing', 'exterior', 'interior', 'site', 'finish', 'admin'];
+  const PHASE_NAMES = {
+    demolition: 'Demolition & haul-off', 'dry-in': 'Dry-in', roofing: 'Roofing',
+    exterior: 'Exterior', interior: 'Interior', site: 'Site work',
+    finish: 'Finish & reset', admin: 'Admin',
+  };
+
+  // Planning defaults for the newer keys (until the owner sets Xactimate rates
+  // in the price book). Same contract as the original 20: editable, labeled.
+  const PRICE_DEFAULTS = {
+    siding_replace: 385, soffit_replace: 9.5, fascia_replace: 11,
+    gutters_new: 12.5, downspouts_new: 85, siding_detach_reset: 120,
+    fence_rr: 65, fence_stain: 4.5, drywall_replace: 95,
+    interior_paint: 450, paint_setup_color: 150,
+    tree_removal: 850, emergency_tarp: 95, site_cleanup: 350,
+    telehandler: 650, lead_safe_rrp: 1200,
+  };
+
+  // Extra line items beyond the core 20, gated by scope. Same shape as ITEMS.
+  // qty(m) reads the extended measurements (see deriveMeasurements).
+  const EXTRA_ITEMS = [
+    // exterior
+    { key: 'siding_replace',     name: 'Siding replacement',                    unit: 'SQ', trade: 'siding',    scope: 'exterior', phase: 'exterior', qty: (m) => m.sidingSQ || 0 },
+    { key: 'soffit_replace',     name: 'Soffit replacement',                    unit: 'LF', trade: 'siding',    scope: 'exterior', phase: 'exterior', qty: (m) => m.soffitLF || 0 },
+    { key: 'fascia_replace',     name: 'Fascia replacement',                    unit: 'LF', trade: 'carpentry', scope: 'exterior', phase: 'exterior', qty: (m) => m.fasciaLF || 0 },
+    { key: 'gutters_new',        name: 'Gutters — new (seamless)',               unit: 'LF', trade: 'gutters',   scope: 'exterior', phase: 'finish',   qty: (m) => m.guttersLF || 0 },
+    { key: 'downspouts_new',     name: 'Downspouts — new',                      unit: 'EA', trade: 'gutters',   scope: 'exterior', phase: 'finish',   qty: (m) => m.downspoutsLF || 0 },
+    { key: 'siding_detach_reset',name: 'Detach & reset siding at roof lines (redeck raise)', unit: 'SQ', trade: 'siding', scope: 'exterior', phase: 'exterior', qty: (m) => m.sidingDetachSQ || 0 },
+    // fence
+    { key: 'fence_rr',           name: 'Fence remove & replace',                unit: 'LF', trade: 'fence',     scope: 'fence',    phase: 'site',     qty: (m) => m.fenceLF || 0 },
+    { key: 'fence_stain',        name: 'Fence stain / seal',                    unit: 'LF', trade: 'paint',     scope: 'fence',    phase: 'finish',   qty: (m) => m.fenceLF || 0 },
+    // interior
+    { key: 'drywall_replace',    name: 'Drywall remove & replace',              unit: 'SQ', trade: 'drywall',   scope: 'interior', phase: 'interior', qty: (m) => m.drywallSQ || 0 },
+    { key: 'interior_paint',     name: 'Interior paint (per room)',             unit: 'EA', trade: 'paint',     scope: 'interior', phase: 'finish',   qty: (m) => m.paintRooms || 0 },
+    { key: 'paint_setup_color',  name: 'Paint setup / cut-in (per color)',      unit: 'EA', trade: 'paint',     scope: 'interior', phase: 'finish',   qty: (m) => m.paintColors || 0 },
+    // site
+    { key: 'tree_removal',       name: 'Tree removal',                          unit: 'EA', trade: 'site',      scope: 'site',     phase: 'site',     qty: (m) => m.treeCount || 0 },
+    { key: 'emergency_tarp',     name: 'Emergency roof tarp',                   unit: 'SQ', trade: 'roofing',   scope: 'site',     phase: 'demolition', qty: (m) => m.tarpSQ || 0 },
+    { key: 'site_cleanup',       name: 'Site cleanup / specialty cleanup',      unit: 'EA', trade: 'site',      scope: 'site',     phase: 'site',     qty: (m) => (m.siteCleanup ? 1 : 0) },
+    // equipment & compliance (roof scope, optional toggles)
+    { key: 'telehandler',        name: 'Telehandler rental (material loading)', unit: 'DAY', trade: 'equipment', scope: 'roof',  phase: 'demolition', qty: (m) => m.telehandlerDays || 0 },
+    { key: 'lead_safe_rrp',      name: 'EPA RRP lead-safe setup (pre-1978)',    unit: 'EA', trade: 'admin',     scope: 'roof',  phase: 'admin',      qty: (m) => (m.yearBuilt && m.yearBuilt < 1978 ? 1 : 0) },
+  ];
+
+  const EXTRA_COVERAGE = [
+    { key: 'siding_replace',      rx: /siding/i },
+    { key: 'soffit_replace',     rx: /soffit/i },
+    { key: 'fascia_replace',      rx: /fascia/i },
+    { key: 'gutters_new',         rx: /gutter/i },
+    { key: 'downspouts_new',      rx: /downspout/i },
+    { key: 'fence_rr',            rx: /fence/i },
+    { key: 'drywall_replace',     rx: /drywall|sheetrock/i },
+    { key: 'interior_paint',      rx: /interior paint/i },
+    { key: 'tree_removal',        rx: /tree/i },
+    { key: 'emergency_tarp',      rx: /tarp/i },
+  ];
+
+  // The 14-point don't-miss audit. Each rule inspects the measurements and
+  // the built items and returns pass / flag / info. This is the safety net:
+  // nothing covered gets forgotten.
+  const AUDIT_RULES = [
+    { id: 'starter',     label: 'Starter course', check: (m, has) =>
+      !m.roofSQ ? null : has('starter') ? pass('Starter included') : flag('Shingles without starter course') },
+    { id: 'ridge_cap',   label: 'Hip & ridge cap', check: (m, has) =>
+      !(m.ridgesLF + m.hipsLF > 0) ? null : has('ridge_cap') ? pass('Ridge cap covers ' + (m.ridgesLF + m.hipsLF) + ' LF') : flag('Ridges/hips with no cap line') },
+    { id: 'ice_water',   label: 'Ice & water shield', check: (m, has) =>
+      !(m.valleysLF > 0 || m.eavesLF > 0) ? null : has('ice_water') ? pass('Valleys + eaves covered') : flag('Valleys/eaves with no ice & water') },
+    { id: 'drip_edge',   label: 'Drip edge', check: (m, has) =>
+      !(m.eavesLF + m.rakesLF > 0) ? null : has('drip_edge') ? pass('Eaves + rakes covered') : flag('Eaves/rakes with no drip edge') },
+    { id: 'waste',       label: 'Waste factor ≥ 10%', check: (m) =>
+      !(m.wastePct > 0) ? null : m.wastePct >= 10 ? pass(m.wastePct + '% waste') : flag('Waste only ' + m.wastePct + '% — bump to 10%+') },
+    { id: 'tearoff',     label: 'Tear-off specified', check: (m, has) =>
+      !m.roofSQ ? null : has('haul_off') ? pass('Haul-off on the sheet') : flag('No tear-off / haul-off line') },
+    { id: 'ventilation', label: 'Ventilation', check: (m, has) =>
+      !m.roofSQ ? null : has('ridge_vent') ? pass('Ridge vent included') : info('No ridge vent — verify ventilation') },
+    { id: 'pipes',       label: 'Pipe flashing', check: (m, has) =>
+      !(m.pipeCount > 0) ? null : has('pipe_boot') ? pass(m.pipeCount + ' boot(s)') : flag(m.pipeCount + ' pipe(s) with no boots') },
+    { id: 'step_flash',  label: 'Step flashing', check: (m, has) =>
+      !(m.stepFlashingLF > 0) ? null : has('step_flashing') ? pass(m.stepFlashingLF + ' LF') : flag('Roof-to-wall with no step flashing') },
+    { id: 'valley',      label: 'Valley metal', check: (m, has) =>
+      !(m.valleysLF > 0) ? null : has('valley_metal') ? pass(m.valleysLF + ' LF') : flag('Valleys with no metal') },
+    { id: 'gutter_rr',   label: 'Gutter detach/reset (redeck)', check: (m, has) =>
+      !has('redeck') ? null : has('gutter_rr') ? pass('Gutters detach/reset on redeck') : flag('Redeck without gutter detach/reset — adjusters miss this') },
+    { id: 'ext_raise',   label: 'Exterior raise (redeck)', check: (m, has) =>
+      !has('redeck') ? null : (has('paint_touchup') || has('siding_detach_reset') || has('fascia_replace')) ? pass('Exterior raise accounted') : flag('Redeck without exterior raise (fascia/siding at roof lines)') },
+    { id: 'op',          label: 'Overhead & profit', check: (m, has, trades) =>
+      trades.size < 3 ? info('Only ' + trades.size + ' trade(s) — O&P needs 3+') : pass(trades.size + ' trades — O&P applied') },
+    { id: 'permit',      label: 'Permit', check: (m, has) =>
+      has('permit') ? pass('Permit on the sheet') : info('No permit line — add if the city requires it') },
+  ];
+  function pass(detail) { return { status: 'pass', detail }; }
+  function flag(detail) { return { status: 'flag', detail }; }
+  function info(detail) { return { status: 'info', detail }; }
+
+  function runAudit(measurements, result) {
+    const itemKeys = new Set(result.items.map((i) => i.key));
+    const has = (k) => itemKeys.has(k);
+    const out = [];
+    for (const rule of AUDIT_RULES) {
+      let r;
+      try { r = rule.check(measurements, has, new Set(result.trades)); }
+      catch (e) { r = info('check error'); }
+      if (!r) continue; // not applicable
+      out.push({ id: rule.id, label: rule.label, status: r.status, detail: r.detail });
+    }
+    return out;
+  }
   const COVERAGE = [
     { key: 'shingles',     rx: /RFG\s*(240|300|230)|laminated|composition shingle/i },
     { key: 'underlayment', rx: /RFG\s*(200|210)|#?15[-\s]?lb|felt|synthetic underlayment/i },
@@ -722,31 +892,46 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
 
   // measurements: {roofSQ, eavesLF, rakesLF, ridgesLF, hipsLF, valleysLF,
   //   stepFlashingLF, wallFlashingLF, pipeCount, chimneyCount, skylightCount,
-  //   satelliteCount}
-  // opts: {priceBook, adjusterText, includeCovered=false, qtyOverrides={}}
+  //   satelliteCount, ...extended fields below}
+  // opts: {priceBook, adjusterText, includeCovered=false, qtyOverrides={},
+  //   scopes={roof:true}}
   function buildSupplement(measurements, opts = {}) {
     const priceBook = opts.priceBook || {};
+    const scopes = Object.assign({ roof: true }, opts.scopes || {});
     const covered = coveredKeys(opts.adjusterText || '');
+    for (const c of EXTRA_COVERAGE) if (c.rx.test(opts.adjusterText || '')) covered.add(c.key);
     const overrides = opts.qtyOverrides || {};
+    const defs = ITEMS.concat(EXTRA_ITEMS.filter((d) => scopes[d.scope]));
     const items = [];
-    for (const def of ITEMS) {
+    for (const def of defs) {
       let qty = def.key in overrides ? +overrides[def.key] : +def.qty(measurements).toFixed(2);
       if (!qty || qty <= 0) continue;
-      const price = +(priceBook[def.key] || 0);
+      const price = +(priceBook[def.key] || PRICE_DEFAULTS[def.key] || 0);
       items.push({
         key: def.key, name: def.name, unit: def.unit, trade: def.trade,
+        scope: def.scope || 'roof', phase: def.phase || phaseFor(def.trade),
         qty, price, total: +(qty * price).toFixed(2),
         adjusterCovered: covered.has(def.key),
       });
     }
+    // build-ordered: sort supplement candidates by phase, keep stable order
+    const phaseIdx = (p) => PHASES.indexOf(p);
     const visible = opts.includeCovered ? items : items.filter((i) => !i.adjusterCovered);
+    visible.sort((a, b) => phaseIdx(a.phase) - phaseIdx(b.phase));
     const subtotal = +visible.reduce((s, i) => s + i.total, 0).toFixed(2);
     const { opLines, trades } = applyOP(visible, subtotal);
     const total = +(subtotal + opLines.reduce((s, l) => s + l.total, 0)).toFixed(2);
     return {
       items: visible, opLines, subtotal, total, trades,
+      scopes: Object.keys(scopes).filter((k) => scopes[k]),
       coveredCount: items.filter((i) => i.adjusterCovered).length,
     };
+  }
+
+  function phaseFor(trade) {
+    if (trade === 'admin') return 'admin';
+    if (trade === 'equipment') return 'demolition';
+    return 'roofing';
   }
 
   // Derive working measurements from raw EagleView-style numbers.
@@ -775,10 +960,28 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
       dripEdgeLF: (raw.eavesLF || 0) + (raw.rakesLF || 0),
       ridgeCapLF: (raw.ridgesLF || 0) + (raw.hipsLF || 0),
       shinglesSQ: roofSQ,
+      // extended: whole-property scopes (all optional, default 0)
+      sidingSQ: raw.sidingSQ || 0,
+      soffitLF: raw.soffitLF || 0,
+      fasciaLF: raw.fasciaLF || 0,
+      guttersLF: raw.guttersLF || 0,
+      downspoutsLF: raw.downspoutsLF || 0,
+      sidingDetachSQ: raw.sidingDetachSQ || 0,
+      fenceLF: raw.fenceLF || 0,
+      drywallSQ: raw.drywallSQ || 0,
+      paintRooms: raw.paintRooms || 0,
+      paintColors: raw.paintColors || 0,
+      treeCount: raw.treeCount || 0,
+      tarpSQ: raw.tarpSQ || 0,
+      siteCleanup: !!raw.siteCleanup,
+      detachedCount: raw.detachedCount || 0,
+      yearBuilt: raw.yearBuilt || 0,
+      telehandlerDays: raw.telehandlerDays || 0,
     };
   }
 
-  return { ITEMS, COVERAGE, roundUp3, coveredKeys, applyOP, buildSupplement, deriveMeasurements };
+  return { ITEMS, COVERAGE, roundUp3, coveredKeys, applyOP, buildSupplement, deriveMeasurements,
+    SCOPES, PHASES, PHASE_NAMES, PRICE_DEFAULTS, EXTRA_ITEMS, EXTRA_COVERAGE, AUDIT_RULES, runAudit };
 });
 </script>
 <script>// High Ground HQ — PDF text parsers (EagleView + Xactimate).
@@ -918,6 +1121,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
   const TITLES = {
     dashboard: 'Dashboard', leads: 'Leads', jobs: 'Jobs', estimates: 'Estimates',
     comms: 'Comms — drafts & outreach', campaigns: 'Neighborhood campaigns', settings: 'Settings',
+    flyer: 'Neighborhood flyer',
   };
 
   let current = 'dashboard';
@@ -985,10 +1189,58 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
   window.HQ = { $, $$, h, money, fmtDate, badge, db, S, loadSettings, savePriceBook, saveSetting, go, TEMPLATES, fillTemplate, aiPromptForDraft,
     auth: {
       signOut: () => db.signOut().then(() => location.reload()),
-    } };
+    },
+    docs: docsStore() };
+
+  // IndexedDB file bytes for job documents (metadata lives in the cloud
+  // `documents` table; bytes stay local so the app works offline).
+  function docsStore() {
+    let pdb = null;
+    function open() {
+      return new Promise((resolve, reject) => {
+        if (pdb) return resolve(pdb);
+        const req = indexedDB.open('hq_docs', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('docs', { keyPath: 'id' });
+        req.onsuccess = () => { pdb = req.result; resolve(pdb); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function tx(mode) {
+      return open().then((d) => d.transaction('docs', mode).objectStore('docs'));
+    }
+    return {
+      async put(id, blob) {
+        const s = await tx('readwrite');
+        return new Promise((resolve, reject) => {
+          const r = s.put({ id, blob });
+          r.onsuccess = () => resolve();
+          r.onerror = () => reject(r.error);
+        });
+      },
+      async get(id) {
+        const s = await tx('readonly');
+        return new Promise((resolve, reject) => {
+          const r = s.get(id);
+          r.onsuccess = () => resolve(r.result ? r.result.blob : null);
+          r.onerror = () => reject(r.error);
+        });
+      },
+      async remove(id) {
+        const s = await tx('readwrite');
+        return new Promise((resolve, reject) => {
+          const r = s.delete(id);
+          r.onsuccess = () => resolve();
+          r.onerror = () => reject(r.error);
+        });
+      },
+    };
+  }
 
   async function boot() {
     await loadSettings();
+    const co = S.settings.company_name;
+    if (co) $('#brand-company').textContent = co;
+    if (S.user && S.user.email) $('#user-email').textContent = S.user.email;
     go('dashboard');
   }
 
@@ -1022,6 +1274,17 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
 
   document.addEventListener('DOMContentLoaded', async () => {
     $$('#nav button').forEach((b) => b.addEventListener('click', () => go(b.dataset.view)));
+    $('#btn-signout').onclick = () => window.HQ.auth.signOut();
+    $('#global-search').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const term = e.target.value.trim();
+      if (!term) return;
+      // hand the term to the leads view's own search and go there
+      window.VIEWS.leads._q = term;
+      e.target.value = '';
+      e.target.blur();
+      go('leads');
+    });
     try {
       const session = await db.session();
       if (!session) return renderLogin();
@@ -1090,12 +1353,39 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
   window.VIEWS.leads = {
     actions() {
       return `<button class="ghost small" id="btn-import">Import CSV</button>
+              <button class="ghost small" id="btn-digest">Import digest</button>
               <button class="small" id="btn-add-lead">+ Add lead</button>
-              <input type="file" id="csv-file" accept=".csv" style="display:none">`;
+              <input type="file" id="csv-file" accept=".csv" style="display:none">
+              <input type="file" id="digest-file" accept=".jsonl,application/json" style="display:none">`;
     },
     bindActions(bar) {
       $('#btn-add-lead', bar).onclick = () => go('leads', 'new');
       $('#btn-import', bar).onclick = () => $('#csv-file', bar).click();
+      $('#btn-digest', bar).onclick = () => $('#digest-file', bar).click();
+      $('#digest-file', bar).onchange = async (e) => {
+        const f = e.target.files[0];
+        e.target.value = '';
+        if (!f) return;
+        const text = await f.text();
+        let n = 0, skipped = 0;
+        for (const line of text.split(/\r?\n/)) {
+          const s = line.trim();
+          if (!s) continue;
+          let o;
+          try { o = JSON.parse(s); } catch (err) { skipped++; continue; }
+          if (!o.name || !String(o.name).trim()) { skipped++; continue; }
+          await db.insert('leads', {
+            name: String(o.name).trim(),
+            phone: o.phone || '', email: o.email || '',
+            address: o.address || '', city: o.city || 'Oklahoma City', zip: o.zip || '',
+            source: 'digest', source_url: o.source_url || '', source_detail: o.note || '',
+            notes: (o.note ? o.note + ' ' : '') + '[from morning digest]',
+          });
+          n++;
+        }
+        alert('Imported ' + n + ' digest leads.' + (skipped ? ' Skipped ' + skipped + ' lines.' : ''));
+        go('leads');
+      };
       $('#csv-file', bar).onchange = async (e) => {
         const f = e.target.files[0];
         if (!f) return;
@@ -1208,6 +1498,8 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
 
   // ---------------- Jobs ----------------
   const JOB_STATUSES = ['estimate', 'supplement', 'approved', 'scheduled', 'in_progress', 'completed', 'cancelled'];
+  const PIPELINE = ['estimate', 'supplement', 'approved', 'scheduled', 'in_progress', 'completed', 'paid'];
+  const DOC_KINDS = ['photo', 'eagleview', 'contract', 'invoice', 'other'];
 
   window.VIEWS.jobs = {
     actions() { return `<button class="small" id="btn-add-job">+ Add job</button>`; },
@@ -1227,48 +1519,153 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
       $$('[data-job]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('jobs', +a.dataset.job); });
       $$('[data-est]', el).forEach((b) => b.onclick = () => go('estimates', { newFor: +b.dataset.est }));
     },
-    async form(el, arg) {
-      const isNew = arg === 'new' || (arg && typeof arg === 'object');
-      const id = isNew ? null : +arg;
-      const presetLead = arg && typeof arg === 'object' ? arg.newFor : null;
-      const j = id ? await db.get('jobs', id) : null;
+
+    // New-job form (kept slim); existing jobs open the hub below.
+    async newForm(el, presetLead) {
       const leads = await db.list('leads', { select: 'id, name', orderBy: 'name' });
-      const estimates = id ? await db.list('estimates', { where: { job_id: id }, orderBy: 'created_at', order: 'desc' }) : [];
-      const m = j ? JSON.parse(j.measurements_json || '{}') : {};
       el.innerHTML = `
         <div class="toolbar"><button class="ghost small" id="back">← All jobs</button></div>
-        <div class="two-col">
-        <div class="panel"><h2>${j ? h(j.address) : 'New job'}</h2>
+        <div class="panel"><h2>New job</h2>
           <label>Lead</label><select id="f-lead"><option value="">— none —</option>
-            ${leads.map((l) => `<option value="${l.id}" ${(j?.lead_id === l.id || presetLead === l.id) ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select>
-          <label>Job address</label><input id="f-address" value="${h(j?.address || '')}">
+            ${leads.map((l) => `<option value="${l.id}" ${presetLead === l.id ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select>
+          <label>Job address</label><input id="f-address">
           <div class="form-grid">
-            <div><label>Status</label><select id="f-status">${JOB_STATUSES.map((s) => `<option ${j?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
-            <div><label>Claim #</label><input id="f-claim" value="${h(j?.claim_number || '')}"></div>
-            <div><label>Carrier</label><input id="f-carrier" value="${h(j?.carrier || '')}"></div>
-            <div><label>Adjuster</label><input id="f-adjuster" value="${h(j?.adjuster || '')}"></div>
-            <div><label>Date of loss</label><input id="f-dol" value="${h(j?.date_of_loss || '')}" placeholder="2026-05-18"></div>
+            <div><label>Status</label><select id="f-status">${JOB_STATUSES.map((s) => `<option>${s}</option>`).join('')}</select></div>
+            <div><label>Claim #</label><input id="f-claim"></div>
+            <div><label>Carrier</label><input id="f-carrier"></div>
+            <div><label>Adjuster</label><input id="f-adjuster"></div>
+            <div><label>Date of loss</label><input id="f-dol" placeholder="2026-05-18"></div>
           </div>
-          <label>EagleView / measurements note</label><textarea id="f-ev" style="min-height:60px" placeholder="e.g. EagleView report 2026-09-20 parsed: 2,920 sq ft, 6/12, 11% waste">${h(j?.eagleview_note || '')}</textarea>
-          <label>Notes</label><textarea id="f-notes" style="min-height:60px">${h(j?.notes || '')}</textarea>
-          <div class="mt"><button id="save">${j ? 'Save' : 'Create job'}</button></div>
-        </div>
-        <div>
-          <div class="panel"><h2>Measurements</h2>
-            ${m.roofSQ ? `<table>
-              <tr><td>Total area</td><td><b>${h(m.totalSqFt)} sq ft</b></td></tr>
-              <tr><td>Roof squares (w/ ${h(m.wastePct)}% waste)</td><td><b>${h(m.roofSQ)} SQ</b></td></tr>
-              <tr><td>Pitch</td><td>${h(m.pitch || '—')}</td></tr>
-              <tr><td>Eaves / Rakes</td><td>${h(m.eavesLF)} / ${h(m.rakesLF)} LF</td></tr>
-              <tr><td>Ridges / Hips / Valleys</td><td>${h(m.ridgesLF)} / ${h(m.hipsLF)} / ${h(m.valleysLF)} LF</td></tr>
-              <tr><td>Starter / Drip edge / Ridge cap</td><td>${h(m.starterLF)} / ${h(m.dripEdgeLF)} / ${h(m.ridgeCapLF)} LF</td></tr>
-            </table>` : '<p class="muted">No measurements yet — parse an EagleView report or enter them in the estimate builder.</p>'}
-          </div>
-          ${j ? `<div class="panel"><h2>Supplements</h2>
-            ${estimates.map((e) => { const t = JSON.parse(e.totals_json || '{}'); return `<p><a href="#" data-est="${e.id}">Supplement ${fmtDate(e.created_at)}</a> — <b>${money(t.total)}</b></p>`; }).join('') || '<p class="muted">None yet.</p>'}
-            <button class="small mt" id="new-est">+ Build supplement</button></div>` : ''}
-        </div></div>`;
+          <label>Notes</label><textarea id="f-notes" style="min-height:60px"></textarea>
+          <div class="mt"><button id="save">Create job</button></div>
+        </div>`;
       $('#back', el).onclick = () => go('jobs');
+      $('#save', el).onclick = async () => {
+        const address = $('#f-address', el).value.trim();
+        if (!address) { alert('Address is required.'); return; }
+        const row = await db.insert('jobs', {
+          lead_id: $('#f-lead', el).value || null, address,
+          status: $('#f-status', el).value, claim_number: $('#f-claim', el).value.trim(),
+          carrier: $('#f-carrier', el).value.trim(), adjuster: $('#f-adjuster', el).value.trim(),
+          date_of_loss: $('#f-dol', el).value.trim(), notes: $('#f-notes', el).value.trim(),
+        });
+        go('jobs', row.id);
+      };
+    },
+
+    async form(el, arg) {
+      const isNew = arg === 'new' || (arg && typeof arg === 'object');
+      if (isNew) return this.newForm(el, arg && typeof arg === 'object' ? arg.newFor : null);
+      return this.hub(el, +arg);
+    },
+
+    // Job hub: pipeline + claim info + measurements + estimates + docs + comms + financials.
+    async hub(el, id) {
+      const j = await db.get('jobs', id);
+      if (!j) { el.innerHTML = '<p class="muted">Job not found.</p>'; return; }
+      const leads = await db.list('leads', { select: 'id, name', orderBy: 'name' });
+      const lead = j.lead_id ? await db.get('leads', j.lead_id) : null;
+      const estimates = await db.list('estimates', { where: { job_id: id }, orderBy: 'created_at', order: 'desc' });
+      const drafts = await db.list('drafts', { where: { job_id: id }, orderBy: 'created_at', order: 'desc' });
+      const docs = await db.list('documents', { where: { job_id: id }, orderBy: 'created_at', order: 'desc' });
+      const m = JSON.parse(j.measurements_json || '{}');
+      const fin = Object.assign({ materials_cost: 0, labor_cost: 0, other_cost: 0, paid_amount: 0 }, JSON.parse(j.financials_json || '{}'));
+      const billed = estimates.length ? (+(JSON.parse(estimates[0].totals_json || '{}').total || 0)) : 0;
+      const totalCost = (+fin.materials_cost || 0) + (+fin.labor_cost || 0) + (+fin.other_cost || 0);
+      const balance = billed - (+fin.paid_amount || 0);
+      const curIdx = PIPELINE.indexOf(j.status);
+
+      const stageBtn = (s, i) => {
+        const cls = i < curIdx ? 'done' : i === curIdx ? '' : 'ghost';
+        return `<button class="${cls} small" data-stage="${s}" ${i === curIdx ? 'disabled' : ''}>${s.replace('_', ' ')}</button>`;
+      };
+
+      el.innerHTML = `
+        <div class="toolbar"><button class="ghost small" id="back">← All jobs</button></div>
+        <div class="panel"><h2>${h(j.address)}</h2>
+          <p class="muted">${lead ? `Lead: <a href="#" id="hub-lead">${h(lead.name)}</a> · ` : ''}Claim ${h(j.claim_number || '—')} · ${h(j.carrier || '')}</p>
+          <div class="pipeline">${PIPELINE.map(stageBtn).join('<span class="pipe-arrow">→</span>')}</div>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="panel"><h2>Claim info</h2>
+              <label>Lead</label><select id="f-lead"><option value="">— none —</option>
+                ${leads.map((l) => `<option value="${l.id}" ${j.lead_id === l.id ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select>
+              <label>Job address</label><input id="f-address" value="${h(j.address || '')}">
+              <div class="form-grid">
+                <div><label>Status</label><select id="f-status">${JOB_STATUSES.concat(j.status === 'paid' ? ['paid'] : []).map((s) => `<option ${j.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+                <div><label>Claim #</label><input id="f-claim" value="${h(j.claim_number || '')}"></div>
+                <div><label>Carrier</label><input id="f-carrier" value="${h(j.carrier || '')}"></div>
+                <div><label>Adjuster</label><input id="f-adjuster" value="${h(j.adjuster || '')}"></div>
+                <div><label>Date of loss</label><input id="f-dol" value="${h(j.date_of_loss || '')}"></div>
+              </div>
+              <label>EagleView / measurements note</label><textarea id="f-ev" style="min-height:60px">${h(j.eagleview_note || '')}</textarea>
+              <label>Notes</label><textarea id="f-notes" style="min-height:60px">${h(j.notes || '')}</textarea>
+              <div class="mt"><button id="save">Save claim info</button></div>
+            </div>
+            <div class="panel"><h2>Financials</h2>
+              <div class="form-grid">
+                <div><label>Materials cost</label><input id="fin-mat" type="number" step="any" value="${fin.materials_cost || ''}"></div>
+                <div><label>Labor cost</label><input id="fin-lab" type="number" step="any" value="${fin.labor_cost || ''}"></div>
+                <div><label>Other cost</label><input id="fin-oth" type="number" step="any" value="${fin.other_cost || ''}"></div>
+                <div><label>Paid amount</label><input id="fin-paid" type="number" step="any" value="${fin.paid_amount || ''}"></div>
+              </div>
+              <table class="mt"><tr><td>Total cost</td><td><b>${money(totalCost)}</b></td></tr>
+              <tr><td>Billed (latest supplement)</td><td><b>${money(billed)}</b></td></tr>
+              <tr><td>Paid</td><td><b>${money(fin.paid_amount)}</b></td></tr>
+              <tr class="total-row"><td>Balance</td><td>${money(balance)}</td></tr></table>
+              <div class="mt"><button id="fin-save">Save financials</button></div>
+            </div>
+          </div>
+          <div>
+            <div class="panel"><h2>Measurements</h2>
+              ${m.roofSQ ? `<table>
+                <tr><td>Total area</td><td><b>${h(m.totalSqFt)} sq ft</b></td></tr>
+                <tr><td>Roof squares (w/ ${h(m.wastePct)}% waste)</td><td><b>${h(m.roofSQ)} SQ</b></td></tr>
+                <tr><td>Pitch</td><td>${h(m.pitch || '—')}</td></tr>
+                <tr><td>Eaves / Rakes</td><td>${h(m.eavesLF)} / ${h(m.rakesLF)} LF</td></tr>
+                <tr><td>Ridges / Hips / Valleys</td><td>${h(m.ridgesLF)} / ${h(m.hipsLF)} / ${h(m.valleysLF)} LF</td></tr>
+                <tr><td>Starter / Drip edge / Ridge cap</td><td>${h(m.starterLF)} / ${h(m.dripEdgeLF)} / ${h(m.ridgeCapLF)} LF</td></tr>
+              </table>` : '<p class="muted">No measurements yet — parse an EagleView report or enter them in the estimate builder.</p>'}
+            </div>
+            <div class="panel"><h2>Supplements</h2>
+              ${estimates.map((e) => { const t = JSON.parse(e.totals_json || '{}'); let sc = {}; try { sc = JSON.parse(e.scope_json || '{}'); } catch (err) {}
+                const chips = Object.keys(sc).filter((k) => sc[k]).map((k) => `<span class="badge b-draft">${h(k)}</span>`).join(' ');
+                return `<p><a href="#" data-est="${e.id}">Supplement ${fmtDate(e.created_at)}</a> — <b>${money(t.total)}</b> ${chips}</p>`; }).join('') || '<p class="muted">None yet.</p>'}
+              <button class="small mt" id="new-est">+ Build supplement</button>
+            </div>
+            <div class="panel"><h2>Documents (${docs.length})</h2>
+              <div id="doc-list">
+              ${docs.map((d) => `<div class="doc-row">
+                <div><b>${h(d.filename || 'Untitled')}</b> ${badge(d.kind || 'other')}
+                  <div class="muted small">${h(d.note || '')} ${fmtDate(d.created_at)}</div></div>
+                <div class="row-actions">
+                  <button class="ghost small" data-dl="${d.id}">Open</button>
+                  <button class="danger small" data-deldoc="${d.id}">Delete</button>
+                </div></div>`).join('') || '<p class="muted">No documents yet.</p>'}
+              </div>
+              <h3>Add document</h3>
+              <div class="form-grid">
+                <div><label>Name</label><input id="doc-name" placeholder="e.g. EagleView report"></div>
+                <div><label>Kind</label><select id="doc-kind">${DOC_KINDS.map((k) => `<option>${k}</option>`).join('')}</select></div>
+              </div>
+              <label>Note</label><input id="doc-note" placeholder="optional">
+              <label>File (optional — stored on this device)</label><input type="file" id="doc-file">
+              <div class="mt"><button class="small" id="doc-add">Add document</button></div>
+            </div>
+            <div class="panel"><h2>Comms</h2>
+              ${drafts.map((d) => `<p>${badge(d.kind)} ${badge(d.status)} <a href="#" data-draft="${d.id}">${h(d.subject || (d.body || '').slice(0, 50))}</a></p>`).join('') || '<p class="muted">No drafts for this job.</p>'}
+              <button class="ghost small mt" id="new-draft">+ New draft</button>
+            </div>
+          </div>
+        </div>`;
+
+      $('#back', el).onclick = () => go('jobs');
+      const hl = $('#hub-lead', el); if (hl) hl.onclick = (e) => { e.preventDefault(); go('leads', j.lead_id); };
+      $$('[data-stage]', el).forEach((b) => b.onclick = async () => {
+        await db.update('jobs', id, { status: b.dataset.stage });
+        go('jobs', id);
+      });
       $('#save', el).onclick = async () => {
         const vals = {
           lead_id: $('#f-lead', el).value || null, address: $('#f-address', el).value.trim(),
@@ -1278,12 +1675,58 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
           notes: $('#f-notes', el).value.trim(),
         };
         if (!vals.address) { alert('Address is required.'); return; }
-        if (j) await db.update('jobs', id, vals);
-        else await db.insert('jobs', vals);
-        go('jobs');
+        await db.update('jobs', id, vals);
+        alert('Saved.');
+        go('jobs', id);
+      };
+      $('#fin-save', el).onclick = async () => {
+        const g = (i) => parseFloat($('#' + i, el).value) || 0;
+        await db.update('jobs', id, { financials_json: JSON.stringify({
+          materials_cost: g('fin-mat'), labor_cost: g('fin-lab'), other_cost: g('fin-oth'), paid_amount: g('fin-paid'),
+        }) });
+        alert('Financials saved.');
+        go('jobs', id);
       };
       const ne = $('#new-est', el); if (ne) ne.onclick = () => go('estimates', { newFor: id });
+      const nd = $('#new-draft', el); if (nd) nd.onclick = () => go('comms', { newForJob: id });
       $$('[data-est]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('estimates', +a.dataset.est); });
+      $$('[data-draft]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('comms', +a.dataset.draft); });
+
+      // documents
+      const refreshDocs = () => go('jobs', id);
+      $('#doc-add', el).onclick = async () => {
+        const file = $('#doc-file', el).files[0];
+        const filename = $('#doc-name', el).value.trim() || (file ? file.name : '');
+        if (!filename) { alert('Give the document a name or pick a file.'); return; }
+        const row = await db.insert('documents', {
+          job_id: id, lead_id: j.lead_id || null,
+          kind: $('#doc-kind', el).value, filename,
+          note: $('#doc-note', el).value.trim(),
+          mime: file ? file.type : '', storage_path: '',
+        });
+        if (file) {
+          try { await window.HQ.docs.put(row.id, file); }
+          catch (err) { alert('Saved the record, but the file could not be stored on this device: ' + err.message); }
+        }
+        refreshDocs();
+      };
+      $$('[data-dl]', el).forEach((b) => b.onclick = async () => {
+        try {
+          const blob = await window.HQ.docs.get(+b.dataset.dl);
+          if (!blob) { alert('No file stored for this document on this device.'); return; }
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.target = '_blank';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+        } catch (err) { alert('Could not open file: ' + err.message); }
+      });
+      $$('[data-deldoc]', el).forEach((b) => b.onclick = async () => {
+        if (!confirm('Delete this document record?')) return;
+        await db.remove('documents', +b.dataset.deldoc);
+        try { await window.HQ.docs.remove(+b.dataset.deldoc); } catch (err) { /* no bytes stored */ }
+        refreshDocs();
+      });
     },
   };
 })();
@@ -1296,7 +1739,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
   const PA = window.HQParsers;
 
   // ---------------- Estimates ----------------
-  const EST = { step: 1, jobId: null, claim: {}, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null };
+  const EST = { step: 1, jobId: null, claim: {}, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null, scopes: { roof: true }, audit: [] };
 
   async function extractPdfText(file) {
     const pdfjs = await import('../node_modules/pdfjs-dist/build/pdf.mjs');
@@ -1345,7 +1788,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
 
     async builder(el, jobId) {
       const job = await db.get('jobs', jobId);
-      Object.assign(EST, { step: 1, jobId, claim: { address: job.address, claim_number: job.claim_number, carrier: job.carrier, adjuster: job.adjuster, date_of_loss: job.date_of_loss }, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null });
+      Object.assign(EST, { step: 1, jobId, claim: { address: job.address, claim_number: job.claim_number, carrier: job.carrier, adjuster: job.adjuster, date_of_loss: job.date_of_loss }, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null, scopes: { roof: true }, audit: [] });
       this.builderStep(el, job);
     },
 
@@ -1367,13 +1810,24 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
 
     stepClaim(b, job) {
       const c = EST.claim;
-      b.innerHTML = `<div class="form-grid">
+      const scopeBox = (key, label, locked) => `<label class="scope-check"><input type="checkbox" data-scope="${key}" style="width:auto" ${EST.scopes[key] ? 'checked' : ''} ${locked ? 'disabled checked' : ''}> ${label}${locked ? ' <span class="muted">(always on)</span>' : ''}</label>`;
+      b.innerHTML = `<h3>Claim scopes</h3>
+        <div class="scope-row">
+          ${scopeBox('roof', 'Roof', true)}
+          ${SE.SCOPES.filter((s) => s.key !== 'roof').map((s) => scopeBox(s.key, s.name.replace(/^.*—\s*/, ''))).join('')}
+        </div>
+        <div class="note">Scopes decide which measurement fields appear next and which line items the builder can add. Roof is always on.</div>
+        <h3>Claim info</h3>
+        <div class="form-grid">
         <div><label>Property address</label><input id="c-address" value="${h(c.address || '')}"></div>
         <div><label>Claim #</label><input id="c-claim" value="${h(c.claim_number || '')}"></div>
         <div><label>Carrier</label><input id="c-carrier" value="${h(c.carrier || '')}"></div>
         <div><label>Adjuster</label><input id="c-adjuster" value="${h(c.adjuster || '')}"></div>
         <div><label>Date of loss</label><input id="c-dol" value="${h(c.date_of_loss || '')}"></div></div>
         <div class="mt"><button id="c-next">Next: measurements →</button></div>`;
+      $$('[data-scope]', b).forEach((cb) => cb.onchange = () => {
+        EST.scopes[cb.dataset.scope] = cb.checked;
+      });
       $('#c-next', b).onclick = () => {
         EST.claim = { address: $('#c-address', b).value.trim(), claim_number: $('#c-claim', b).value.trim(), carrier: $('#c-carrier', b).value.trim(), adjuster: $('#c-adjuster', b).value.trim(), date_of_loss: $('#c-dol', b).value.trim() };
         EST.step = 2; this.builderStep($('#view'), job);
@@ -1383,12 +1837,14 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
     stepMeasure(b, job) {
       const r = EST.raw;
       const F = (id, label, val, hint) => `<div><label>${label}</label><input id="${id}" type="number" step="any" value="${val == null ? '' : val}" placeholder="${hint || ''}"></div>`;
+      const grp = (title, open, inner) => `<details class="scope-group" ${open ? 'open' : ''}><summary>${title}</summary><div class="form-grid">${inner}</div></details>`;
+      const on = (k) => !!EST.scopes[k];
       b.innerHTML = `
         <div class="toolbar"><label class="muted" style="margin:0">EagleView PDF:</label>
           <input type="file" id="ev-file" accept=".pdf" style="width:auto">
           <span class="muted" id="ev-status"></span></div>
         <div class="note" id="ev-found" style="display:none"></div>
-        <div class="form-grid">
+        ${grp('Roof measurements', true, `
           ${F('m-sqft', 'Total roof area (sq ft)', r.totalSqFt)}
           ${F('m-waste', 'Waste % (from report\u2019s Suggested column)', r.wastePct, '10')}
           <div><label>Predominant pitch</label><input id="m-pitch" value="${h(r.pitch || '')}" placeholder="6/12"></div>
@@ -1397,8 +1853,27 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
           ${F('m-eaves', 'Eaves (LF)', r.eavesLF)} ${F('m-step', 'Step flashing (LF)', r.stepFlashingLF)}
           ${F('m-wall', 'Headwall flashing (LF)', r.wallFlashingLF)} ${F('m-pipe', 'Pipe penetrations (EA)', r.pipeCount)}
           ${F('m-chimney', 'Chimneys (EA)', r.chimneyCount)} ${F('m-skylight', 'Skylights (EA)', r.skylightCount)}
-          ${F('m-sat', 'Satellite/dish (EA)', r.satelliteCount)}
-        </div>
+          ${F('m-sat', 'Satellite/dish (EA)', r.satelliteCount)}`)}
+        ${on('exterior') ? grp('Exterior — siding / soffit / fascia / gutters', false, `
+          ${F('m-sidingSQ', 'Siding replacement (SQ)', r.sidingSQ)}
+          ${F('m-soffitLF', 'Soffit (LF)', r.soffitLF)}
+          ${F('m-fasciaLF', 'Fascia (LF)', r.fasciaLF)}
+          ${F('m-guttersLF', 'Gutters — new (LF)', r.guttersLF)}
+          ${F('m-downspoutsLF', 'Downspouts — new (EA)', r.downspoutsLF)}
+          ${F('m-sidingDetachSQ', 'Detach & reset siding at roof lines (SQ)', r.sidingDetachSQ)}`) : ''}
+        ${on('fence') ? grp('Fence', false, F('m-fenceLF', 'Fence remove & replace (LF)', r.fenceLF)) : ''}
+        ${on('interior') ? grp('Interior', false, `
+          ${F('m-drywallSQ', 'Drywall remove & replace (SQ)', r.drywallSQ)}
+          ${F('m-paintRooms', 'Rooms to paint (EA)', r.paintRooms)}
+          ${F('m-paintColors', 'Paint colors / cut-in setups (EA)', r.paintColors)}`) : ''}
+        ${on('site') ? grp('Site / detached structures', false, `
+          ${F('m-treeCount', 'Trees to remove (EA)', r.treeCount)}
+          ${F('m-tarpSQ', 'Emergency tarp (SQ)', r.tarpSQ)}
+          ${F('m-detachedCount', 'Detached structures (EA)', r.detachedCount)}
+          <div><label class="scope-check"><input type="checkbox" id="m-siteCleanup" style="width:auto" ${r.siteCleanup ? 'checked' : ''}> Site cleanup needed</label></div>`) : ''}
+        ${grp('Other', false, `
+          ${F('m-yearBuilt', 'Year built', r.yearBuilt, 'e.g. 1972')}
+          ${F('m-telehandlerDays', 'Telehandler rental (days)', r.telehandlerDays)}`)}
         <div class="mt row-actions"><button class="ghost" id="m-back">← Back</button><button id="m-next">Next: adjuster estimate →</button></div>`;
       $('#ev-file', b).onchange = async (e) => {
         const f = e.target.files[0];
@@ -1419,12 +1894,20 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
       };
       $('#m-back', b).onclick = () => { EST.step = 1; this.builderStep($('#view'), job); };
       $('#m-next', b).onclick = () => {
-        const g = (id) => parseFloat($('#' + id, b).value) || 0;
+        const g = (id) => { const elx = $('#' + id, b); return elx ? parseFloat(elx.value) || 0 : 0; };
+        const chk = (id) => { const elx = $('#' + id, b); return elx ? elx.checked : false; };
         EST.raw = {
           totalSqFt: g('m-sqft'), wastePct: g('m-waste') || 10, pitch: $('#m-pitch', b).value.trim(),
           ridgesLF: g('m-ridges'), hipsLF: g('m-hips'), valleysLF: g('m-valleys'), rakesLF: g('m-rakes'),
           eavesLF: g('m-eaves'), stepFlashingLF: g('m-step'), wallFlashingLF: g('m-wall'),
           pipeCount: g('m-pipe'), chimneyCount: g('m-chimney'), skylightCount: g('m-skylight'), satelliteCount: g('m-sat'),
+          sidingSQ: g('m-sidingSQ'), soffitLF: g('m-soffitLF'), fasciaLF: g('m-fasciaLF'),
+          guttersLF: g('m-guttersLF'), downspoutsLF: g('m-downspoutsLF'), sidingDetachSQ: g('m-sidingDetachSQ'),
+          fenceLF: g('m-fenceLF'),
+          drywallSQ: g('m-drywallSQ'), paintRooms: g('m-paintRooms'), paintColors: g('m-paintColors'),
+          treeCount: g('m-treeCount'), tarpSQ: g('m-tarpSQ'), detachedCount: g('m-detachedCount'),
+          siteCleanup: chk('m-siteCleanup'),
+          yearBuilt: g('m-yearBuilt'), telehandlerDays: g('m-telehandlerDays'),
         };
         EST.measurements = SE.deriveMeasurements(EST.raw);
         EST.step = 3; this.builderStep($('#view'), job);
@@ -1475,21 +1958,43 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
     stepSupplement(b, job, rootEl) {
       const m = EST.measurements;
       const rebuild = () => {
-        EST.result = SE.buildSupplement(m, { priceBook: S.priceBook, adjusterText: EST.adjusterText, includeCovered: EST.includeCovered, qtyOverrides: EST.overrides });
+        EST.result = SE.buildSupplement(m, { priceBook: S.priceBook, adjusterText: EST.adjusterText, includeCovered: EST.includeCovered, qtyOverrides: EST.overrides, scopes: EST.scopes });
+        EST.audit = SE.runAudit(m, EST.result);
       };
       rebuild();
-      const r = EST.result;
+      const auditHtml = () => {
+        const order = { flag: 0, info: 1, pass: 2 };
+        const rows = EST.audit.slice().sort((a, c) => order[a.status] - order[c.status]);
+        if (!rows.length) return '';
+        return `<h3>Don\u2019t-miss audit</h3>
+        <table class="audit"><tr><th></th><th>Check</th><th>Detail</th></tr>
+        ${rows.map((a) => `<tr class="audit-${a.status}"><td><span class="adot ${a.status}"></span></td><td>${h(a.label)}</td><td class="muted">${h(a.detail)}</td></tr>`).join('')}
+        </table>`;
+      };
       const rowHtml = (it) => `<tr>
         <td>${h(it.name)} ${it.adjusterCovered ? '<span class="covered" title="Adjuster already covered this">●</span>' : '<span class="miss" title="Adjuster missed this">●</span>'}</td>
         <td><input type="number" step="any" data-qty="${it.key}" value="${it.qty}" style="width:90px"></td>
         <td>${it.unit}</td><td><input type="number" step="any" data-price="${it.key}" value="${it.price}" style="width:90px"></td>
         <td><b>${money(it.total)}</b></td></tr>`;
+      const renderRows = (r) => {
+        let html = '';
+        for (const ph of SE.PHASES) {
+          const items = r.items.filter((i) => i.phase === ph);
+          if (!items.length) continue;
+          html += `<tr class="phase-row"><td colspan="5">${h(SE.PHASE_NAMES[ph])}</td></tr>` + items.map(rowHtml).join('');
+        }
+        return html;
+      };
+      const r = EST.result;
+      const scopeChips = Object.keys(EST.scopes).filter((k) => EST.scopes[k]).map((k) => `<span class="badge b-approved">${h(k)}</span>`).join(' ');
       b.innerHTML = `
         <h3>Derived measurements</h3>
         <p class="muted">${h(m.totalSqFt)} sq ft · ${h(m.pitch || '—')} pitch · <b>${h(m.roofSQ)} SQ</b> at ${h(m.wastePct)}% waste · starter ${h(m.starterLF)} LF · drip edge ${h(m.dripEdgeLF)} LF · ridge cap ${h(m.ridgeCapLF)} LF · valleys ${h(m.valleysLF)} LF</p>
+        <p>Scopes: ${scopeChips}</p>
+        ${auditHtml()}
         <h3>Supplement line items <span class="muted">(<span class="miss">●</span> missed by adjuster · <span class="covered">●</span> already covered)</span></h3>
         <table><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Price</th><th>Total</th></tr>
-        <tbody id="sup-rows">${r.items.map(rowHtml).join('')}</tbody>
+        <tbody id="sup-rows">${renderRows(r)}</tbody>
         <tr class="total-row"><td colspan="4">Subtotal</td><td>${money(r.subtotal)}</td></tr>
         ${r.opLines.map((l) => `<tr><td colspan="4">${h(l.name)} <span class="muted">(${r.trades.join(', ')})</span></td><td>${money(l.total)}</td></tr>`).join('')}
         <tr class="total-row"><td colspan="4">Supplement total</td><td>${money(r.total)}</td></tr></table>
@@ -1505,7 +2010,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
         $$('[data-qty]', b).forEach((inp) => { EST.overrides[inp.dataset.qty] = parseFloat(inp.value) || 0; });
         rebuild();
         const r2 = EST.result;
-        $('#sup-rows', b).innerHTML = r2.items.map(rowHtml).join('');
+        $('#sup-rows', b).innerHTML = renderRows(r2);
         bindInputs();
       };
       const bindInputs = () => {
@@ -1535,6 +2040,8 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
           job_id: EST.jobId,
           claim_info_json: JSON.stringify(EST.claim),
           measurements_json: JSON.stringify(m),
+          scope_json: JSON.stringify(EST.scopes),
+          audit_json: JSON.stringify(EST.audit),
           adjuster_items_json: JSON.stringify(EST.adjusterItems),
           supplement_items_json: JSON.stringify(r4.items.concat(r4.opLines)),
           totals_json: JSON.stringify({ subtotal: r4.subtotal, total: r4.total, trades: r4.trades }),
@@ -1583,9 +2090,23 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
       const items = JSON.parse(e.supplement_items_json || '[]');
       const t = JSON.parse(e.totals_json || '{}');
       const c = JSON.parse(e.claim_info_json || '{}');
+      let scopes = {};
+      try { scopes = JSON.parse(e.scope_json || '{}'); } catch (err) { scopes = {}; }
+      if (!Object.keys(scopes).length) scopes = { roof: true };
+      let audit = [];
+      try { audit = JSON.parse(e.audit_json || '[]'); } catch (err) { audit = []; }
+      const order = { flag: 0, info: 1, pass: 2 };
+      audit = audit.slice().sort((a, x) => order[a.status] - order[x.status]);
+      const scopeChips = Object.keys(scopes).filter((k) => scopes[k]).map((k) => `<span class="badge b-approved">${h(k)}</span>`).join(' ');
       el.innerHTML = `<div class="toolbar"><button class="ghost small" id="d-back">← All estimates</button></div>
         <div class="panel"><h2>Supplement — ${h(e.address || '')}</h2>
         <p class="muted">${fmtDate(e.created_at)} · Claim ${h(c.claim_number || '—')} · ${h(c.carrier || '')}</p>
+        <p>Scopes: ${scopeChips}</p>
+        ${audit.length ? `<h3>Don\u2019t-miss audit</h3>
+        <table class="audit"><tr><th></th><th>Check</th><th>Detail</th></tr>
+        ${audit.map((a) => `<tr class="audit-${a.status}"><td><span class="adot ${a.status}"></span></td><td>${h(a.label)}</td><td class="muted">${h(a.detail)}</td></tr>`).join('')}
+        </table>` : ''}
+        <h3>Line items</h3>
         <table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
         ${items.map((it) => `<tr><td>${h(it.name)}</td><td>${it.qty} ${it.unit || ''}</td><td>${money(it.price)}</td><td>${money(it.total)}</td></tr>`).join('')}
         <tr class="total-row"><td colspan="3">Total</td><td>${money(t.total)}</td></tr></table></div>`;
@@ -1598,8 +2119,9 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
     actions() { return `<button class="small" id="btn-new-draft">+ New draft</button>`; },
     bindActions(bar) { $('#btn-new-draft', bar).onclick = () => go('comms', { new: true }); },
     async render(el, arg) {
-      if (arg && (arg.new || arg.newFor)) return this.composer(el, arg.newFor || null, null);
-      if (arg && typeof arg === 'number') return this.composer(el, null, arg);
+      if (arg && (arg.new || arg.newFor)) return this.composer(el, arg.newFor || null, null, null);
+      if (arg && arg.newForJob) return this.composer(el, null, null, arg.newForJob);
+      if (arg && typeof arg === 'number') return this.composer(el, null, arg, null);
       const kf = this._kf || '', sf = this._sf || '';
       const where = {};
       if (kf) where.kind = kf;
@@ -1627,11 +2149,17 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
       $$('[data-approve]', el).forEach((b) => b.onclick = async () => { await db.update('drafts', +b.dataset.approve, { status: 'approved' }); this.render(el); });
     },
 
-    async composer(el, leadId, draftId) {
+    async composer(el, leadId, draftId, jobId) {
       const d = draftId ? await db.get('drafts', draftId) : null;
       const leads = await db.list('leads', { select: 'id, name, phone, email, address, city, zip', orderBy: 'name' });
       const jobs = await db.list('jobs', { select: 'id, address, claim_number, carrier', orderBy: 'created_at', order: 'desc', limit: 30 });
       const selLead = d?.lead_id || leadId || '';
+      const selJob = d?.job_id || jobId || '';
+      let preLead = selLead;
+      if (!preLead && jobId) {
+        const jj = await db.get('jobs', +jobId);
+        if (jj && jj.lead_id) preLead = jj.lead_id;
+      }
       el.innerHTML = `
         <div class="toolbar"><button class="ghost small" id="back">← All drafts</button></div>
         <div class="two-col">
@@ -1640,7 +2168,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
             <div><label>Kind</label><select id="d-kind">
               ${['email', 'text', 'call'].map((k) => `<option ${(d?.kind || 'email') === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
             <div><label>To (lead)</label><select id="d-lead"><option value="">— none —</option>
-              ${leads.map((l) => `<option value="${l.id}" ${+selLead === l.id ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select></div>
+              ${leads.map((l) => `<option value="${l.id}" ${+preLead === l.id ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select></div>
           </div>
           <label>Template</label><select id="d-tpl"><option value="">— start blank —</option>
             ${TEMPLATES.map((t) => `<option value="${t.id}">${h(t.name)}</option>`).join('')}</select>
@@ -1660,7 +2188,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
           <tbody id="merge-rows"><tr><td colspan="2" class="muted">Pick a lead to preview.</td></tr></tbody></table>
           <h3 class="mt">Context job (for {{job_address}} etc.)</h3>
           <select id="d-job"><option value="">— none —</option>
-            ${jobs.map((j) => `<option value="${j.id}" ${d?.job_id === j.id ? 'selected' : ''}>${h(j.address)}</option>`).join('')}</select>
+            ${jobs.map((j) => `<option value="${j.id}" ${+selJob === j.id ? 'selected' : ''}>${h(j.address)}</option>`).join('')}</select>
         </div></div>`;
       const ctxFor = () => {
         const lid = $('#d-lead', el).value;
@@ -1772,6 +2300,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
         <div class="panel"><h2>${h(c.name)}</h2>
         <p class="muted">Anchored on: ${h(c.job_address || '—')} · ${badge(c.status)}</p>
         <div class="row-actions"><button class="small" id="cp-gen">Generate drafts for all targets</button>
+        <button class="ghost small" id="cp-flyer">Print flyer</button>
         <button class="ghost small" id="cp-add">+ Add target</button></div></div>
         <div class="panel"><table><tr><th>Address</th><th>Name</th><th>Phone</th><th>Draft</th><th>Status</th><th></th></tr>
         ${targets.map((t) => `<tr><td>${h(t.address)}</td>
@@ -1785,6 +2314,7 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
         </table></div>
         <div class="note">Drafts generate from the “we just finished your neighbor\u2019s roof” templates with each address merged in. Approve each one — nothing sends itself.</div>`;
       $('#back', el).onclick = () => go('campaigns');
+      $('#cp-flyer', el).onclick = () => go('flyer', id);
       $('#cp-add', el).onclick = async () => {
         const a = prompt('Neighbor address:');
         if (a) { await db.insert('campaign_targets', { campaign_id: id, address: a.trim() }); go('campaigns', id); }
@@ -1816,6 +2346,50 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
     },
   };
 
+  // ---------------- Flyer ----------------
+  window.VIEWS.flyer = {
+    async render(el, campaignId) {
+      const crows = await db.list('campaigns', { select: '*, jobs(address)', where: { id: +campaignId } });
+      const c = crows[0] || null;
+      const jobAddress = c && c.jobs ? c.jobs.address : '';
+      const co = S.settings;
+      const site = 'https://www.highgroundokc.com';
+      const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(site);
+      el.innerHTML = `
+        <div class="toolbar no-print"><button class="ghost small" id="fl-back">← Back to campaign</button>
+          <button id="fl-print">Print / Save PDF</button></div>
+        <div class="flyer">
+          <div class="flyer-brand">
+            <div class="flyer-mark">HG</div>
+            <div><div class="flyer-name">${h(co.company_name || 'High Ground Roofing & Construction')}</div>
+            <div class="flyer-sub">Roofing · Exteriors · Insurance claims</div></div>
+          </div>
+          <h1 class="flyer-head">We just finished a roof<br>near you.</h1>
+          ${jobAddress ? `<p class="flyer-job">${h(jobAddress)}</p>` : ''}
+          <ul class="flyer-list">
+            <li><b>Free drone roof inspections</b> — 15 minutes, photos included, no obligation</li>
+            <li><b>Insurance claim handling</b> — we document the damage and work the claim with your adjuster</li>
+            <li><b>Owens Corning shingles</b> — quality systems, installed to code</li>
+          </ul>
+          <p class="flyer-closer">Weathered a few Oklahoma hail seasons? We\u2019d be glad to take a free look.</p>
+          <div class="flyer-contact">
+            <div>
+              <div class="flyer-phone">${h(co.company_phone || '(405) 252-0058')}</div>
+              <div>${h(co.company_email || 'josh@highgroundokc.com')}</div>
+              <div class="muted">${h(co.company_license || '')}</div>
+            </div>
+            <div class="flyer-qr">
+              <img src="${qr}" alt="QR code" width="160" height="160">
+              <div class="muted small">${h(site)}</div>
+            </div>
+          </div>
+        </div>
+        <div class="note no-print">Tip: in the print dialog choose “Save as PDF” to keep a digital copy, or print straight to the door-flyer stack.</div>`;
+      $('#fl-back', el).onclick = () => go('campaigns', +campaignId);
+      $('#fl-print', el).onclick = () => window.print();
+    },
+  };
+
   // ---------------- Settings ----------------
   window.VIEWS.settings = {
     async render(el) {
@@ -1836,6 +2410,11 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
             <div class="mt"><button id="s-save-co">Save</button></div>
           </div>
           <div class="panel"><h2>Integrations <span class="muted">(owner adds the paid ones later)</span></h2>
+            <div class="integ-list">
+              <div class="integ"><span class="dot ok"></span>Gmail drafts <em>via Muse</em></div>
+              <div class="integ"><span class="dot ${S.settings.twilio_sid ? 'ok' : 'no'}"></span>Twilio <em>${S.settings.twilio_sid ? 'connected' : 'owner adds'}</em></div>
+              <div class="integ"><span class="dot ${S.settings.skiptrace_key ? 'ok' : 'no'}"></span>Skip trace <em>${S.settings.skiptrace_key ? 'connected' : 'owner adds'}</em></div>
+            </div>
             <label>Twilio — Account SID</label><input id="s-tw-sid" value="${h(S.settings.twilio_sid || '')}" placeholder="Not connected">
             <label>Twilio — Auth token</label><input id="s-tw-tok" type="password" value="${h(S.settings.twilio_token || '')}" placeholder="Not connected">
             <label>Twilio — Phone number</label><input id="s-tw-phone" value="${h(S.settings.twilio_phone || '')}" placeholder="e.g. +14055550100">
@@ -1853,10 +2432,6 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
             <p class="muted">Restore a backup JSON downloaded from the old desktop .exe into the cloud.</p>
             <input type="file" id="s-import" accept=".json,application/json">
             <p class="form-err" id="s-import-err"></p>
-          </div>
-          <div class="panel"><h2>Session</h2>
-            <p class="muted">Signed in as ${h(S.user && S.user.email ? S.user.email : '—')}</p>
-            <div class="row-actions"><button class="ghost" id="s-signout">Sign out</button></div>
           </div>
         </div>
         <div class="panel"><h2>Price book <span class="muted">(planning defaults — set real Xactimate rates)</span></h2>
@@ -1899,7 +2474,6 @@ button.primary, .btn.primary { background: var(--accent); color: #14100a; }
         alert('Sample leads deleted.');
         go('settings');
       };
-      $('#s-signout', el).onclick = () => window.HQ.auth.signOut();
       $('#s-import', el).onchange = async (e) => {
         const f = e.target.files[0];
         if (!f) return;
