@@ -14,8 +14,9 @@ body { margin: 0; background: var(--bg); color: var(--text);
   font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 #app { display: flex; flex-direction: column; height: 100vh; }
 #topheader { display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
-.brand { display: flex; gap: 10px; align-items: center; }
+  padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.brand { display: flex; gap: 10px; align-items: center; cursor: pointer; user-select: none; }
+.brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
 .brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent);
   color: #14100a; font-weight: 800; display: flex; align-items: center; justify-content: center; }
 .brand-name { font-weight: 700; font-size: 15px; }
@@ -23,7 +24,7 @@ body { margin: 0; background: var(--bg); color: var(--text);
 .header-right { display: flex; align-items: center; gap: 12px; }
 #global-search { width: 280px; margin: 0; }
 #nav { display: flex; gap: 2px; background: var(--panel); border-bottom: 1px solid var(--line);
-  padding: 0 12px; overflow-x: auto; }
+  padding: 0 12px; overflow-x: auto; flex-shrink: 0; }
 #nav button { background: none; border: none; border-bottom: 3px solid transparent; border-radius: 0;
   color: var(--muted); padding: 12px 16px 9px; font-size: 14px; font-weight: 600; cursor: pointer;
   white-space: nowrap; display: inline-flex; flex-direction: row; align-items: center; gap: 7px; }
@@ -141,6 +142,31 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
 .flyer-phone { font-size: 26px; font-weight: 800; color: #111; }
 .flyer-qr { text-align: center; }
 
+/* ---- HailScope ---- */
+#hail-map { width: 100%; min-height: 60vh; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--line); margin-bottom: 18px; background: var(--panel); }
+#hail-map .leaflet-container { min-height: 60vh; background: #0e1218; font: inherit; }
+.hs-pin .hs-dot { width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+  color: #14100a; font-weight: 800; font-size: 11px; display: flex; align-items: center;
+  justify-content: center; border: 2px solid rgba(255,255,255,.25); box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.hs-pop { font-size: 13px; color: #111; }
+.hs-pop button { margin-top: 6px; }
+
+/* ---- Photos ---- */
+.photo-sub { margin: 0 0 10px; font-size: 14px; color: var(--accent); }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.photo-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
+  overflow: hidden; cursor: pointer; }
+.photo-card:hover { border-color: var(--accent); }
+.photo-card .ph-thumb { aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); overflow: hidden; }
+.photo-card .ph-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.ph-meta { padding: 8px 10px; font-size: 12px; }
+.lightbox { position: fixed; inset: 0; background: rgba(4,6,10,.92); z-index: 2000;
+  display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out; }
+.lb-inner img { max-width: 92vw; max-height: 80vh; border-radius: 8px; }
+.lb-cap { margin-top: 8px; text-align: center; }
+
 @media print {
   #topheader, #nav, #topbar, .no-print, .note.no-print { display: none !important; }
   body { background: #fff; }
@@ -185,13 +211,15 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
   .flyer-head { font-size: 32px; }
   .flyer-contact { flex-direction: column; align-items: flex-start; }
   .doc-row { flex-direction: column; align-items: stretch; }
+  #hail-map, #hail-map .leaflet-container { min-height: 70vh; }
+  .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 }
 </style>
 </head>
 <body>
 <div id="app">
   <header id="topheader">
-    <div class="brand">
+    <div class="brand" id="brand-home" role="button" tabindex="0" title="Go to dashboard">
       <div class="brand-mark">HG</div>
       <div>
         <div class="brand-name">High Ground HQ</div>
@@ -208,6 +236,8 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
     <button data-view="dashboard" class="active"><span class="tab-ico">◈</span>Dashboard</button>
     <button data-view="leads"><span class="tab-ico">◎</span>Leads</button>
     <button data-view="jobs"><span class="tab-ico">⌂</span>Jobs</button>
+    <button data-view="hailscope"><span class="tab-ico">◉</span>HailScope</button>
+    <button data-view="photos"><span class="tab-ico">▣</span>Photos</button>
     <button data-view="estimates"><span class="tab-ico">≣</span>Estimates</button>
     <button data-view="comms"><span class="tab-ico">✉</span>Comms</button>
     <button data-view="campaigns"><span class="tab-ico">◐</span>Campaigns</button>
@@ -228,8 +258,10 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
 <script src="app.js"></script>
 <script src="views.js"></script>
 <script src="views2.js"></script>
+<script src="views3.js"></script>
 
 <script>window.HQ_CONFIG = { SUPABASE_URL: "https://demo.invalid", SUPABASE_ANON_KEY: "demo" };</script>
+<script>window.HQ_HAIL_SEED = [];</script>
 <!-- sanitized in-memory backend (demo only) -->
 <script>// High Ground HQ — in-memory Supabase mock for cloud smoke tests (dev/QA only).
 // Exposes window.supabaseLib = { createClient }, which renderer/db-cloud.js
@@ -264,6 +296,11 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
     ],
     campaigns: [],
     campaign_targets: [],
+    documents: [],
+    hail_events: [
+      { id: 1, date: '2026-05-18', city: 'Moore', lat: 35.3395, lon: -97.4867, size_in: 1.75, source: 'demo', source_url: '', created_at: '2026-05-19T10:00:00Z' },
+      { id: 2, date: '2026-04-29', city: 'Edmond', lat: 35.6528, lon: -97.4781, size_in: 2.5, source: 'demo', source_url: '', created_at: '2026-04-30T10:00:00Z' },
+    ],
   };
 
   // FK map for embedded selects: table -> { fkCol: [refTable] }
@@ -1121,7 +1158,7 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
   const TITLES = {
     dashboard: 'Dashboard', leads: 'Leads', jobs: 'Jobs', estimates: 'Estimates',
     comms: 'Comms — drafts & outreach', campaigns: 'Neighborhood campaigns', settings: 'Settings',
-    flyer: 'Neighborhood flyer',
+    flyer: 'Neighborhood flyer', hailscope: 'HailScope', photos: 'Photos',
   };
 
   let current = 'dashboard';
@@ -1129,7 +1166,11 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
 
   async function go(view, arg) {
     current = view; currentArg = arg === undefined ? null : arg;
-    $$('#nav button').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+    $$('#nav button').forEach((b) => {
+      const on = b.dataset.view === view;
+      b.classList.toggle('active', on);
+      if (on) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
     $('#view-title').textContent = TITLES[view] || view;
     const V = window.VIEWS[view];
     const bar = $('#topbar-actions');
@@ -1274,6 +1315,9 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
 
   document.addEventListener('DOMContentLoaded', async () => {
     $$('#nav button').forEach((b) => b.addEventListener('click', () => go(b.dataset.view)));
+    const brandHome = () => go('dashboard');
+    $('#brand-home').addEventListener('click', brandHome);
+    $('#brand-home').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); brandHome(); } });
     $('#btn-signout').onclick = () => window.HQ.auth.signOut();
     $('#global-search').addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
@@ -1651,6 +1695,7 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
               </div>
               <label>Note</label><input id="doc-note" placeholder="optional">
               <label>File (optional — stored on this device)</label><input type="file" id="doc-file">
+              <label>Photo — phone camera</label><input type="file" id="doc-file-cam" accept="image/*" capture="environment">
               <div class="mt"><button class="small" id="doc-add">Add document</button></div>
             </div>
             <div class="panel"><h2>Comms</h2>
@@ -1695,7 +1740,7 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
       // documents
       const refreshDocs = () => go('jobs', id);
       $('#doc-add', el).onclick = async () => {
-        const file = $('#doc-file', el).files[0];
+        const file = $('#doc-file', el).files[0] || ($('#doc-file-cam', el) && $('#doc-file-cam', el).files[0]);
         const filename = $('#doc-name', el).value.trim() || (file ? file.name : '');
         if (!filename) { alert('Give the document a name or pick a file.'); return; }
         const row = await db.insert('documents', {
@@ -2488,6 +2533,294 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
           $('#s-import-err', el).textContent = 'Import failed: ' + err.message;
         }
       };
+    },
+  };
+})();
+</script>
+<script>// High Ground HQ — views: HailScope (storm map), Photos (CompanyCam-style job photos).
+(function () {
+  'use strict';
+  const { $, $$, h, fmtDate, db, go } = window.HQ;
+
+  // OKC-metro city coordinates (shared with the morning digest cron).
+  const CITY_COORDS = {
+    'Oklahoma City': [35.4676, -97.5164], 'Edmond': [35.6528, -97.4781], 'Norman': [35.2220, -97.4395],
+    'Moore': [35.3395, -97.4867], 'Midwest City': [35.4495, -97.3967], 'Del City': [35.4441, -97.4317],
+    'Yukon': [35.5089, -97.7498], 'Mustang': [35.3864, -97.7221], 'Piedmont': [35.6400, -97.7490],
+    'Choctaw': [35.4972, -97.2667], 'Bethany': [35.5050, -97.6333], 'Warr Acres': [35.5222, -97.6253],
+    'Nichols Hills': [35.5467, -97.5417], 'The Village': [35.5639, -97.5567], 'Valley Brook': [35.4047, -97.4814],
+    'Forest Park': [35.5067, -97.4717], 'Jones': [35.5689, -97.2892], 'Luther': [35.6656, -97.1903],
+    'Harrah': [35.4756, -97.1647], 'Newalla': [35.4039, -97.1736], 'Noble': [35.1417, -97.3889],
+    'Blanchard': [35.1478, -97.8725], 'Newcastle': [35.2467, -97.5964], 'Tuttle': [35.2934, -97.7489],
+    'El Reno': [35.5322, -97.9551], 'Guthrie': [35.8779, -97.4253],
+  };
+
+  // Lazy-load Leaflet 1.9.4 from unpkg the first time HailScope opens.
+  // Never a static <script src> — keeps the single-file demo bundle self-contained.
+  function loadLeaflet() {
+    return new Promise((resolve, reject) => {
+      if (window.L) return resolve(window.L);
+      const timer = setTimeout(() => reject(new Error('Leaflet timed out loading — check your connection')), 15000);
+      const fail = (msg) => { clearTimeout(timer); reject(new Error(msg)); };
+      const done = () => {
+        clearTimeout(timer);
+        if (window.L) resolve(window.L);
+        else reject(new Error('Leaflet script loaded but window.L is missing'));
+      };
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.onerror = () => fail('leaflet.css failed to load');
+      document.head.appendChild(link);
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.crossOrigin = '';
+      s.onload = done;
+      s.onerror = () => fail('leaflet.js failed to load — check your connection');
+      document.head.appendChild(s);
+    });
+  }
+
+  // ---------------- HailScope ----------------
+  window.VIEWS.hailscope = {
+    _map: null,
+    actions() {
+      return `<button class="small" id="hs-add">+ Add storm</button>`;
+    },
+    bindActions(bar) {
+      $('#hs-add', bar).onclick = () => {
+        const f = document.querySelector('#hs-form');
+        if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+      };
+    },
+
+    // Merge the three event sources, dedupe by date+city (db first, then seed, then manual).
+    async events() {
+      const out = [];
+      try {
+        const rows = await db.list('hail_events', { orderBy: 'date', order: 'desc' });
+        for (const r of rows) out.push(r);
+      } catch (e) { /* table may not exist on older backends */ }
+      if (Array.isArray(window.HQ_HAIL_SEED)) {
+        for (const r of window.HQ_HAIL_SEED) out.push(Object.assign({ source: 'digest' }, r));
+      }
+      try {
+        const man = JSON.parse(localStorage.getItem('hq_hail_manual') || '[]');
+        if (Array.isArray(man)) for (const r of man) out.push(r);
+      } catch (e) { /* corrupted local copy */ }
+      const seen = new Set();
+      return out.filter((r) => {
+        const k = String(r.date || '') + '|' + String(r.city || '');
+        if (!k || seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    },
+
+    async render(el) {
+      if (this._map) { try { this._map.remove(); } catch (e) {} this._map = null; }
+      const today = new Date().toISOString().slice(0, 10);
+      const cities = Object.keys(CITY_COORDS).sort();
+      el.innerHTML = `
+        <div class="panel" id="hs-form" style="display:none"><h2>Add storm</h2>
+          <div class="form-grid">
+            <div><label>Date</label><input id="hs-date" type="date" value="${today}"></div>
+            <div><label>City</label><select id="hs-city">${cities.map((c) => `<option>${h(c)}</option>`).join('')}</select></div>
+            <div><label>Hail size (inches, 0 = wind-only)</label><input id="hs-size" type="number" step="0.25" min="0" placeholder="1.75"></div>
+          </div>
+          <label>Source URL (optional)</label><input id="hs-url" placeholder="https://…">
+          <div class="mt row-actions"><button class="small" id="hs-save">Save storm</button>
+          <span class="muted small" id="hs-err"></span></div>
+        </div>
+        <div id="hail-map"><div class="panel"><p class="muted" id="hs-status">Loading storm map…</p></div></div>
+        <div class="panel"><h2>Recent events</h2><div id="hs-list"><p class="muted">Loading…</p></div></div>`;
+
+      $('#hs-save', el).onclick = async () => {
+        const date = $('#hs-date', el).value;
+        const city = $('#hs-city', el).value;
+        const errEl = $('#hs-err', el);
+        if (!date || !city) { if (errEl) errEl.textContent = 'Date and city are required.'; return; }
+        const ll = CITY_COORDS[city] || [35.4676, -97.5164];
+        const ev = { date, city, lat: ll[0], lon: ll[1],
+          size_in: parseFloat($('#hs-size', el).value) || 0,
+          source: 'manual', source_url: $('#hs-url', el).value.trim() };
+        try {
+          const man = JSON.parse(localStorage.getItem('hq_hail_manual') || '[]');
+          man.push(ev);
+          localStorage.setItem('hq_hail_manual', JSON.stringify(man));
+        } catch (e) { /* localStorage unavailable */ }
+        try { await db.insert('hail_events', ev); } catch (e) { /* best-effort: db may not have the table yet */ }
+        go('hailscope');
+      };
+
+      const evts = await this.events();
+      const list = $('#hs-list', el);
+      if (list) {
+        list.innerHTML = evts.length ? `<table>
+          <tr><th>Date</th><th>City</th><th>Hail</th><th>Source</th><th></th></tr>
+          ${evts.slice(0, 30).map((e) => `<tr>
+            <td>${fmtDate(e.date)}</td><td>${h(e.city)}</td>
+            <td>${e.size_in ? h(String(e.size_in)) + '″' : '<span class="muted">wind</span>'}</td>
+            <td class="muted">${e.source_url ? `<a href="${h(e.source_url)}" target="_blank" rel="noopener">link</a>` : h(e.source || '')}</td>
+            <td><button class="ghost small hs-newlead" data-city="${h(e.city || '')}">＋ New lead</button></td>
+          </tr>`).join('')}</table>`
+          : '<p class="muted">No storm events yet. Use "+ Add storm" after the morning digest drops.</p>';
+      }
+      $$('.hs-newlead', el).forEach((b) => {
+        b.onclick = () => { window.VIEWS.leads._q = b.dataset.city; go('leads'); };
+      });
+
+      try {
+        await loadLeaflet();
+        if (!el.isConnected) return; // user navigated away while loading
+        this._initMap(el, evts);
+      } catch (err) {
+        const st = $('#hs-status', el);
+        if (st) st.innerHTML = `Map couldn't load — you may be offline. The event list below still works; canvassing doesn't need the map. <span class="muted small">(${h(err.message)})</span>`;
+      }
+    },
+
+    _initMap(el, evts) {
+      const L = window.L;
+      const mapEl = $('#hail-map', el);
+      mapEl.innerHTML = '';
+      const map = L.map(mapEl).setView([35.4676, -97.5164], 10);
+      const sat = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&hl=en&scale=2&x={x}&y={y}&z={z}', {
+        subdomains: '0123', maxNativeZoom: 21, maxZoom: 21, attribution: '© Google',
+      }).addTo(map);
+      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '© OpenStreetMap contributors',
+      });
+      L.control.layers({ 'Satellite': sat, 'Street': osm }, null, { position: 'topright' }).addTo(map);
+      for (const e of evts) {
+        if (e.lat == null || e.lon == null) continue;
+        const marker = L.marker([e.lat, e.lon], {
+          icon: L.divIcon({
+            className: 'hs-pin',
+            html: `<div class="hs-dot">${e.size_in ? h(String(e.size_in)) + '″' : '◉'}</div>`,
+            iconSize: [34, 34], iconAnchor: [17, 17],
+          }),
+        });
+        marker.bindPopup(
+          `<div class="hs-pop"><b>${h(e.city || '')}</b><br>${h(e.date || '')}` +
+          (e.size_in ? ` — ${h(String(e.size_in))}″ hail` : ' — damaging wind') +
+          (e.source_url ? `<br><a href="${h(e.source_url)}" target="_blank" rel="noopener">source</a>` : '') +
+          `<br><button class="small hs-newlead" data-city="${h(e.city || '')}">＋ New lead</button></div>`
+        );
+        marker.addTo(map);
+      }
+      map.on('popupopen', (pe) => {
+        const peEl = pe.popup.getElement();
+        const b = peEl && peEl.querySelector('.hs-newlead');
+        if (b) b.onclick = () => { window.VIEWS.leads._q = b.dataset.city; go('leads'); };
+      });
+      this._map = map;
+      setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 250);
+    },
+  };
+
+  // ---------------- Photos ----------------
+  window.VIEWS.photos = {
+    async render(el) {
+      let docs = [];
+      try { docs = await db.list('documents', { orderBy: 'created_at', order: 'desc' }); } catch (e) {}
+      const photos = docs.filter((d) => d.kind === 'photo' || String(d.mime || '').indexOf('image/') === 0);
+      let jobs = [];
+      try { jobs = await db.list('jobs', { select: 'id, address', orderBy: 'address' }); } catch (e) {}
+      const jmap = {};
+      jobs.forEach((j) => { jmap[j.id] = j.address; });
+      const groups = [];
+      const byJob = {};
+      for (const p of photos) {
+        const k = p.job_id != null ? String(p.job_id) : 'none';
+        if (!byJob[k]) {
+          byJob[k] = { addr: p.job_id != null ? (jmap[p.job_id] || 'Job #' + p.job_id) : 'No job', items: [] };
+          groups.push(byJob[k]);
+        }
+        byJob[k].items.push(p);
+      }
+
+      el.innerHTML = `
+        <div class="panel"><h2>Take photo</h2>
+          <div class="form-grid">
+            <div><label>Job</label><select id="ph-job"><option value="">— no job —</option>
+              ${jobs.map((j) => `<option value="${j.id}">${h(j.address)}</option>`).join('')}</select></div>
+            <div><label>Note</label><input id="ph-note" placeholder="e.g. front slope, ridge"></div>
+          </div>
+          <div class="mt row-actions">
+            <button class="small" id="ph-take">📷 Take photo</button>
+            <button class="ghost small" id="ph-pick">Choose file</button>
+            <span class="muted small" id="ph-err"></span>
+          </div>
+          <p class="muted small">Photos save to the job and appear below, grouped by address.</p>
+          <input type="file" id="ph-file-cam" accept="image/*" capture="environment" style="display:none">
+          <input type="file" id="ph-file" accept="image/*" style="display:none">
+        </div>
+        ${groups.map((g) => `
+          <div class="panel"><h3 class="photo-sub">${h(g.addr)} <span class="muted">(${g.items.length})</span></h3>
+            <div class="photo-grid">
+              ${g.items.map((p) => `
+                <div class="photo-card" data-doc="${p.id}" role="button" tabindex="0">
+                  <div class="ph-thumb" data-thumb="${p.id}"><span class="muted small">loading…</span></div>
+                  <div class="ph-meta"><b>${h(p.filename || 'Photo')}</b>
+                    <div class="muted small">${fmtDate(p.created_at)}${p.note ? ' — ' + h(p.note) : ''}</div></div>
+                </div>`).join('')}
+            </div></div>`).join('') ||
+          '<div class="panel"><p class="muted">No photos yet. Tap "Take photo" on a job — shots land here under the job address.</p></div>'}`;
+
+      const doUpload = async (input) => {
+        const f = input.files[0];
+        input.value = '';
+        if (!f) return;
+        const errEl = $('#ph-err', el);
+        try {
+          const row = await db.insert('documents', {
+            job_id: $('#ph-job', el).value || null, lead_id: null,
+            kind: 'photo', filename: f.name || 'photo.jpg',
+            note: $('#ph-note', el).value.trim(),
+            mime: f.type || 'image/jpeg', storage_path: '',
+          });
+          try { await window.HQ.docs.put(row.id, f); }
+          catch (err2) { if (errEl) errEl.textContent = 'Saved the record, but the photo could not be stored on this device: ' + err2.message; }
+          go('photos');
+        } catch (err) { if (errEl) errEl.textContent = 'Could not save photo: ' + err.message; }
+      };
+      $('#ph-take', el).onclick = () => $('#ph-file-cam', el).click();
+      $('#ph-pick', el).onclick = () => $('#ph-file', el).click();
+      $('#ph-file-cam', el).onchange = (e) => doUpload(e.target);
+      $('#ph-file', el).onchange = (e) => doUpload(e.target);
+
+      // thumbnails from the same IndexedDB bytes the job-docs feature stores
+      for (const p of photos) {
+        window.HQ.docs.get(p.id).then((blob) => {
+          if (!el.isConnected) return;
+          const slot = el.querySelector(`[data-thumb="${p.id}"]`);
+          if (!slot) return;
+          slot.innerHTML = blob
+            ? `<img src="${URL.createObjectURL(blob)}" alt="">`
+            : '<span class="muted small">no image on this device</span>';
+        }).catch(() => { /* leave placeholder */ });
+      }
+
+      const openLb = async (id) => {
+        const p = photos.find((x) => x.id === id);
+        if (!p) return;
+        let imgHtml = '<p class="muted">No image stored on this device.</p>';
+        try {
+          const blob = await window.HQ.docs.get(id);
+          if (blob) imgHtml = `<img src="${URL.createObjectURL(blob)}" alt="">`;
+        } catch (e) {}
+        const lb = document.createElement('div');
+        lb.className = 'lightbox';
+        lb.innerHTML = `<div class="lb-inner">${imgHtml}
+          <div class="lb-cap"><b>${h(p.filename || 'Photo')}</b> <span class="muted">${fmtDate(p.created_at)}${p.note ? ' — ' + h(p.note) : ''}</span></div></div>`;
+        lb.onclick = () => lb.remove();
+        document.body.appendChild(lb);
+      };
+      $$('.photo-card', el).forEach((card) => {
+        card.onclick = () => openLb(+card.dataset.doc);
+        card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(+card.dataset.doc); } };
+      });
     },
   };
 })();
