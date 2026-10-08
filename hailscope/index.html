@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<title>HailScope — High Ground HQ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<link rel="stylesheet" href="./style.css" />
+<style>
+  /* Fork shell: slim dark header + full-viewport map. The hs-* component
+     styles come from Ground Control's style.css unchanged. */
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: #0b0e13; color: #e8edf4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #hs-top {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+    background: #10141b; border-bottom: 1px solid #232b38; z-index: 30;
+  }
+  #hs-top .hs-brand {
+    font-weight: 800; font-size: 16px; letter-spacing: .2px; white-space: nowrap;
+    color: #f5b942;
+  }
+  #hs-search { flex: 1 1 auto; display: flex; margin: 0; }
+  #hs-addr-q {
+    width: 100%; padding: 9px 12px; font-size: 15px; color: #e8edf4;
+    background: #1a2230; border: 1px solid #2c3648; border-radius: 10px; outline: none;
+  }
+  #hs-addr-q:focus { border-color: #f5b942; }
+  #hs-addr-q::placeholder { color: #7d8aa0; }
+  #hs-locate {
+    flex: 0 0 auto; width: 40px; height: 40px; font-size: 20px; cursor: pointer;
+    background: #1a2230; color: #e8edf4; border: 1px solid #2c3648; border-radius: 10px;
+  }
+  #hs-locate:active { background: #232d40; }
+  #view { flex: 1 1 auto; position: relative; overflow-y: auto; overflow-x: hidden; }
+  /* Override the tab-bar padding from the GC stylesheet — no tabs in the fork. */
+  .hs-wrap { min-height: 100%; padding-bottom: 1.5rem !important; }
+  .hs-map-shell { height: clamp(340px, 58dvh, 620px) !important; }
+  #hs-status {
+    flex: 0 0 auto; min-height: 0; padding: 4px 12px calc(4px + env(safe-area-inset-bottom));
+    font-size: 12px; color: #9fb0c8; background: #10141b; border-top: 1px solid #1c2330;
+  }
+  #hs-status:empty { display: none; }
+  @media (max-width: 720px) {
+    #hs-top .hs-brand span.full { display: none; }
+    .hs-map-shell { height: 52dvh !important; min-height: 300px !important; }
+  }
+</style>
+</head>
+<body class="hs-tab wx-tab">
+<header id="hs-top">
+  <div class="hs-brand">◉ HailScope<span class="full"> — High Ground HQ</span></div>
+  <form id="hs-search" class="hs-goto" autocomplete="off">
+    <input type="search" id="hs-addr-q" placeholder="Address in Oklahoma" enterkeyhint="search" aria-label="Search address" />
+  </form>
+  <button id="hs-locate" title="My location" aria-label="My location">◎</button>
+</header>
+<main id="view">
+  <div class="hs-wrap">
+    <div class="hs-map-shell" id="hs-map-shell">
+      <div class="hs-layers" id="hs-layers"></div>
+      <div class="hs-radar-top" id="hs-radar-top"></div>
+      <div class="hs-map-bar" id="hs-map-bar">
+        <div class="hs-styles" id="hs-styles"></div>
+      </div>
+      <div id="wx-map"></div>
+      <div class="hs-composer" id="hs-composer" hidden></div>
+    </div>
+    <div class="hs-bottom-panel" id="hs-bottom-panel">
+      <div class="hs-sheet" id="hs-sheet">
+        <p class="hs-empty">Tap the map to drop a pin, or search an address — storm history loads here.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<div id="hs-status" role="status"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script type="module" src="./boot.js"></script>
+</body>
+</html>
