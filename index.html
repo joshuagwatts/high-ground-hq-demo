@@ -2245,18 +2245,15 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
     });
   }
 
-  // ---------------- HailScope (the real one, plugged in) ----------------
+  // ---------------- HailScope (slim fork, HQ-owned) ----------------
   window.VIEWS.hailscope = {
-    actions() {
-      return `<a class="ghost small" href="https://joshuagwatts.github.io/ground-control/" target="_blank" rel="noopener">Open full Ground Control \u2197</a>`;
-    },
     async render(el) {
-      // His live Ground Control — HailScope is its default tab, so this lands
-      // straight on the real storm map with the real NOAA hail data.
+      // Standalone HailScope fork: hail-first storm map, no Ground Control
+      // tab bar. Needs a connection for tiles + NOAA hail data.
       el.innerHTML = `
         <iframe class="embed-frame" title="HailScope"
-          src="https://joshuagwatts.github.io/ground-control/"></iframe>
-        <div class="note">Live HailScope from Ground Control. Needs a connection — same map and storm data as the field app.</div>`;
+          src="https://joshuagwatts.github.io/high-ground-hq-demo/hailscope/"></iframe>
+        <div class="note">HailScope storm map — tap the map or search an address for hail history. Needs a connection.</div>`;
     },
   };
 
