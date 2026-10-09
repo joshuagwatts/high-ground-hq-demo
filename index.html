@@ -220,6 +220,36 @@ tr.phase-row td { background: var(--panel2); font-weight: 700; color: var(--acce
 a.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; text-decoration: none; display: inline-block; font-size: 13px; }
 a.ghost:hover { border-color: var(--accent); color: var(--accent); }
 @media (max-width: 720px) { .embed-frame { height: calc(100dvh - 245px); min-height: 420px; } }
+
+/* ---- Slide-over form sheet ---- */
+.sheet-overlay { position: fixed; inset: 0; background: rgba(4,7,12,.62); z-index: 80; opacity: 0; transition: opacity .18s ease; }
+.sheet-overlay.open { opacity: 1; }
+.sheet { position: fixed; top: 0; right: 0; height: 100dvh; width: min(480px, 94vw); background: var(--panel); border-left: 1px solid var(--line); z-index: 81; transform: translateX(103%); transition: transform .24s ease; display: flex; flex-direction: column; box-shadow: -18px 0 50px rgba(0,0,0,.45); }
+.sheet-overlay.open .sheet { transform: none; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.sheet-head h2 { margin: 0; font-size: 17px; }
+.sheet-body { padding: 18px; overflow-y: auto; flex: 1; }
+@media (max-width: 720px) {
+  .sheet { top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 94dvh; border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; transform: translateY(104%); }
+  .sheet-overlay.open .sheet { transform: none; }
+}
+
+/* ---- Segmented Prospect/Client toggle ---- */
+.seg { display: flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
+.seg button { flex: 1; border: 0; background: transparent; color: var(--muted); padding: 9px; border-radius: 7px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.seg button.on { background: var(--accent); color: #14100a; }
+
+/* ---- Contact card (tappable phone / maps rows) ---- */
+.contact-head { display: flex; gap: 14px; align-items: center; margin-bottom: 6px; }
+.contact-head h2 { margin: 0 0 4px; }
+.avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--panel2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; color: var(--accent); flex-shrink: 0; }
+a.contact-row { display: flex; align-items: center; gap: 12px; padding: 11px 6px; border-top: 1px solid var(--line); color: var(--text); text-decoration: none; border-radius: 8px; }
+a.contact-row:hover { background: var(--panel2); }
+.contact-ico { font-size: 17px; width: 24px; text-align: center; flex-shrink: 0; }
+.contact-row b { font-size: 15px; }
+.contact-act { margin-left: auto; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.linklike { color: var(--accent); text-decoration: none; font-weight: 600; }
+.linklike:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -287,7 +317,7 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
       { key: 'twilio_sid', value: '' },
     ],
     leads: [
-      { id: 1, name: 'Demo Homeowner', phone: '', email: 'demo.homeowner@example.com', address: '4812 N Demo Blvd', city: 'Oklahoma City', zip: '73120', source: 'referral', status: 'customer', skip_trace_status: 'not_run', notes: 'Claim DEMO-000123', created_at: '2026-10-01T10:00:00Z' },
+      { id: 1, name: 'Demo Homeowner', phone: '(405) 555-0134', phone_label: 'Mobile', phone2: '(405) 555-0119', phone2_label: 'Home', email: 'demo.homeowner@example.com', address: '4812 N Demo Blvd', city: 'Oklahoma City', zip: '73120', source: 'referral', status: 'customer', skip_trace_status: 'not_run', notes: 'Claim DEMO-000123', created_at: '2026-10-01T10:00:00Z' },
       { id: 2, name: 'Sample Client', phone: '', email: '', address: '', city: 'Oklahoma City', zip: '', source: 'referral', status: 'customer', skip_trace_status: 'not_run', notes: 'Sept 2026 roof job', created_at: '2026-10-01T10:00:00Z' },
       { id: 3, name: 'SAMPLE - Alex Rivera', phone: '(405) 555-0142', email: 'alex.r@example.com', address: '1234 W Sample St', city: 'Oklahoma City', zip: '73120', source: 'door_knock', status: 'lead', skip_trace_status: 'not_run', notes: 'Sample', created_at: '2026-10-02T10:00:00Z' },
     ],
@@ -1233,7 +1263,51 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
       'Return ONLY the rewritten ' + kind + ' (and subject line first for emails).';
   }
 
+  // ---- Slide-over form sheet (AccuLynx-style add/edit sheet) ----
+  let sheetEl = null;
+  function openSheet(title, bodyHTML) {
+    closeSheet(true);
+    sheetEl = document.createElement('div');
+    sheetEl.className = 'sheet-overlay';
+    sheetEl.innerHTML =
+      '<div class="sheet" role="dialog" aria-label="' + h(title) + '">' +
+      '<div class="sheet-head"><h2>' + h(title) + '</h2><button class="ghost small" id="sheet-x" aria-label="Close">✕</button></div>' +
+      '<div class="sheet-body">' + bodyHTML + '</div></div>';
+    document.body.appendChild(sheetEl);
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (sheetEl) sheetEl.classList.add('open'); }));
+    sheetEl.addEventListener('click', (e) => { if (e.target === sheetEl) closeSheet(); });
+    $('#sheet-x', sheetEl).onclick = () => closeSheet();
+    return $('.sheet-body', sheetEl);
+  }
+  function closeSheet(instant) {
+    if (!sheetEl) return;
+    const el = sheetEl; sheetEl = null;
+    if (instant) { el.remove(); return; }
+    el.classList.remove('open');
+    setTimeout(() => el.remove(), 260);
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+
+  // ---- Contact helpers: tap-to-call + tap-address-to-Maps ----
+  function phoneDigits(p) { return String(p || '').replace(/\D/g, ''); }
+  function fmtPhone(p) {
+    const d = phoneDigits(p);
+    if (d.length === 11 && d[0] === '1') return fmtPhone(d.slice(1));
+    if (d.length === 10) return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+    return String(p || '');
+  }
+  function telHref(p) {
+    const d = phoneDigits(p);
+    if (!d) return null;
+    return 'tel:+' + (d.length === 10 ? '1' + d : d);
+  }
+  function mapsUrl(address, city, zip) {
+    const q = [address, city, zip].filter((s) => s && String(s).trim()).join(', ');
+    return q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : null;
+  }
+
   window.HQ = { $, $$, h, money, fmtDate, badge, db, S, loadSettings, savePriceBook, saveSetting, go, TEMPLATES, fillTemplate, aiPromptForDraft,
+    openSheet, closeSheet, phoneDigits, fmtPhone, telHref, mapsUrl,
     auth: {
       signOut: () => db.signOut().then(() => location.reload()),
     },
@@ -1350,7 +1424,31 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
 <script>// High Ground HQ — views: Dashboard, Leads, Jobs.
 (function () {
   'use strict';
-  const { $, $$, h, money, fmtDate, badge, db, S, go } = window.HQ;
+  const { $, $$, h, money, fmtDate, badge, db, S, go, openSheet, closeSheet, fmtPhone, telHref, mapsUrl } = window.HQ;
+
+  const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
+  function initials(name) {
+    return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+  }
+  function phoneRow(num, label) {
+    const href = telHref(num);
+    if (!href) return '';
+    return `<a class="contact-row" href="${href}"><span class="contact-ico">📞</span>` +
+      `<span><b>${h(fmtPhone(num))}</b><span class="muted small"> · ${h(label || 'Phone')}</span></span>` +
+      `<span class="contact-act">Call</span></a>`;
+  }
+  function emailRow(email) {
+    if (!email) return '';
+    return `<a class="contact-row" href="mailto:${encodeURIComponent(email)}"><span class="contact-ico">✉️</span>` +
+      `<span><b>${h(email)}</b></span><span class="contact-act">Email</span></a>`;
+  }
+  function addressRow(l) {
+    const url = mapsUrl(l.address, l.city, l.zip);
+    if (!url) return '';
+    const full = [l.address, l.city, l.zip].filter(Boolean).join(', ');
+    return `<a class="contact-row" href="${url}" target="_blank" rel="noopener"><span class="contact-ico">📍</span>` +
+      `<span><b>${h(full)}</b></span><span class="contact-act">Maps ↗</span></a>`;
+  }
 
   // ---------------- Dashboard ----------------
   window.VIEWS.dashboard = {
@@ -1400,6 +1498,7 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
   // ---------------- Leads ----------------
   const LEAD_STATUSES = ['lead', 'contacted', 'estimate_sent', 'customer', 'lost'];
 
+  // ---------------- Leads: sheet form + tappable contact card ----------------
   window.VIEWS.leads = {
     actions() {
       return `<button class="ghost small" id="btn-import">Import CSV</button>
@@ -1409,7 +1508,7 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
               <input type="file" id="digest-file" accept=".jsonl,application/json" style="display:none">`;
     },
     bindActions(bar) {
-      $('#btn-add-lead', bar).onclick = () => go('leads', 'new');
+      $('#btn-add-lead', bar).onclick = () => window.VIEWS.leads.sheet(null);
       $('#btn-import', bar).onclick = () => $('#csv-file', bar).click();
       $('#btn-digest', bar).onclick = () => $('#digest-file', bar).click();
       $('#digest-file', bar).onchange = async (e) => {
@@ -1459,14 +1558,25 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
         go('leads');
       };
     },
+    phoneCell(l) {
+      const href = telHref(l.phone);
+      return href ? `<a class="linklike" href="${href}">${h(fmtPhone(l.phone))}</a>` : '<span class="muted">—</span>';
+    },
+    addrCell(l) {
+      const url = mapsUrl(l.address, l.city, l.zip);
+      const short = [l.address, l.city].filter(Boolean).join(', ');
+      if (!url) return '<span class="muted">—</span>';
+      return `<a class="linklike" href="${url}" target="_blank" rel="noopener">${h(short)} ↗</a>`;
+    },
     async render(el, arg) {
-      if (arg === 'new' || (arg && arg !== 'list')) return this.form(el, arg === 'new' ? null : +arg);
+      if (arg && arg !== 'list') return this.detail(el, +arg);
       const q = (this._q || '').toLowerCase();
       const st = this._st || '';
       const where = {};
       if (st) where.status = st;
+      const cols = ['name', 'address', 'phone', 'phone2', 'email'];
       const leads = q
-        ? await db.search('leads', { cols: ['name', 'address', 'phone'], term: q, where, orderBy: 'created_at', order: 'desc' })
+        ? await db.search('leads', { cols, term: q, where, orderBy: 'created_at', order: 'desc' })
         : await db.list('leads', { where, orderBy: 'created_at', order: 'desc' });
       el.innerHTML = `
         <div class="toolbar">
@@ -1480,7 +1590,7 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
           <tr><th>Name</th><th>Phone</th><th>Address</th><th>Source</th><th>Status</th><th>Skip trace</th><th></th></tr>
           ${leads.map((l) => `<tr>
             <td><a href="#" data-lead="${l.id}">${h(l.name)}</a></td>
-            <td>${h(l.phone || '—')}</td><td>${h(l.address || '—')}</td>
+            <td>${this.phoneCell(l)}</td><td>${this.addrCell(l)}</td>
             <td class="muted">${h(l.source)}</td><td>${badge(l.status)}</td>
             <td class="muted">${h(l.skip_trace_status)}</td>
             <td><div class="row-actions">
@@ -1496,53 +1606,90 @@ a.ghost:hover { border-color: var(--accent); color: var(--accent); }
       $$('[data-draft]', el).forEach((b) => b.onclick = () => go('comms', { newFor: +b.dataset.draft }));
       $$('[data-job]', el).forEach((b) => b.onclick = () => go('jobs', { newFor: +b.dataset.job }));
     },
-    async form(el, id) {
-      const l = id ? await db.get('leads', id) : null;
-      const jobs = id ? await db.list('jobs', { where: { lead_id: id }, orderBy: 'created_at', order: 'desc' }) : [];
-      const drafts = id ? await db.list('drafts', { where: { lead_id: id }, orderBy: 'created_at', order: 'desc' }) : [];
+    async detail(el, id) {
+      const l = await db.get('leads', id);
+      if (!l) { el.innerHTML = '<p class="muted">Lead not found.</p>'; return; }
+      const jobs = await db.list('jobs', { where: { lead_id: id }, orderBy: 'created_at', order: 'desc' });
+      const drafts = await db.list('drafts', { where: { lead_id: id }, orderBy: 'created_at', order: 'desc' });
       el.innerHTML = `
-        <div class="toolbar"><button class="ghost small" id="back">← All leads</button></div>
+        <div class="toolbar"><button class="ghost small" id="back">← All leads</button>
+          <span style="flex:1"></span><button class="small" id="edit-lead">Edit</button></div>
         <div class="two-col">
-        <div class="panel"><h2>${l ? h(l.name) : 'New lead'}</h2>
-          <div class="form-grid">
-            <div><label>Name</label><input id="f-name" value="${h(l?.name || '')}"></div>
-            <div><label>Phone</label><input id="f-phone" value="${h(l?.phone || '')}"></div>
-            <div><label>Email</label><input id="f-email" value="${h(l?.email || '')}"></div>
-            <div><label>Status</label><select id="f-status">${LEAD_STATUSES.map((s) => `<option ${l?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
-            <div><label>Address</label><input id="f-address" value="${h(l?.address || '')}"></div>
-            <div><label>City</label><input id="f-city" value="${h(l?.city || 'Oklahoma City')}"></div>
-            <div><label>ZIP</label><input id="f-zip" value="${h(l?.zip || '')}"></div>
-            <div><label>Source</label><input id="f-source" value="${h(l?.source || 'manual')}"></div>
+          <div class="panel">
+            <div class="contact-head">
+              <div class="avatar">${h(initials(l.name))}</div>
+              <div><h2>${h(l.name)}</h2>
+                <div>${badge(l.status)} <span class="muted small">${h(l.source || '')} · since ${fmtDate(l.created_at)}</span></div>
+              </div>
+            </div>
+            ${phoneRow(l.phone, l.phone_label)}
+            ${phoneRow(l.phone2, l.phone2_label)}
+            ${emailRow(l.email)}
+            ${addressRow(l)}
+            ${l.notes ? `<p class="muted" style="margin:10px 0 0">${h(l.notes)}</p>` : ''}
+            <div class="mt"><button class="ghost small" id="skiptrace">Run skip trace</button></div>
+            <div class="note" id="st-note" style="display:none">Skip trace isn\u2019t connected yet — the provider gets added when the business owner takes over. This button will pull name → phone/email/address then.</div>
           </div>
-          <label>Notes</label><textarea id="f-notes" style="min-height:70px">${h(l?.notes || '')}</textarea>
-          <div class="mt row-actions">
-            <button id="save">${l ? 'Save' : 'Create lead'}</button>
-            ${l ? `<button class="ghost" id="skiptrace">Run skip trace</button>` : ''}
+          <div>
+            <div class="panel"><h2>Jobs</h2>
+              ${jobs.map((j) => `<p><a href="#" data-gojob="${j.id}">${h(j.address)}</a> ${badge(j.status)}</p>`).join('') || '<p class="muted">No jobs yet.</p>'}
+              <button class="ghost small mt" id="add-job">+ Job for this lead</button></div>
+            <div class="panel"><h2>Drafts</h2>
+              ${drafts.map((d) => `<p>${badge(d.kind)} ${badge(d.status)} <span class="muted">${h(d.subject || String(d.body || '').slice(0, 50))}</span></p>`).join('') || '<p class="muted">No drafts yet.</p>'}
+              <button class="ghost small mt" id="add-draft">+ Draft for this lead</button></div>
           </div>
-          ${l ? `<div class="note" id="st-note" style="display:none">Skip trace isn\u2019t connected yet — provider gets added when the business owner takes over. This button will pull name → phone/email/address then.</div>` : ''}
-        </div>
-        <div>
-          ${l ? `<div class="panel"><h2>Jobs</h2>
-            ${jobs.map((j) => `<p><a href="#" data-gojob="${j.id}">${h(j.address)}</a> ${badge(j.status)}</p>`).join('') || '<p class="muted">No jobs yet.</p>'}
-            <button class="ghost small mt" id="add-job">+ Job for this lead</button></div>
-          <div class="panel"><h2>Drafts</h2>
-            ${drafts.map((d) => `<p>${badge(d.kind)} ${badge(d.status)} <span class="muted">${h(d.subject || d.body.slice(0, 50))}</span></p>`).join('') || '<p class="muted">No drafts yet.</p>'}
-            <button class="ghost small mt" id="add-draft">+ Draft for this lead</button></div>` : ''}
-        </div></div>`;
+        </div>`;
       $('#back', el).onclick = () => go('leads');
-      $('#save', el).onclick = async () => {
-        const vals = ['f-name', 'f-phone', 'f-email', 'f-status', 'f-address', 'f-city', 'f-zip', 'f-source', 'f-notes'].map((i) => $('#' + i, el).value.trim());
-        if (!vals[0]) { alert('Name is required.'); return; }
-        const obj = { name: vals[0], phone: vals[1], email: vals[2], status: vals[3], address: vals[4], city: vals[5], zip: vals[6], source: vals[7], notes: vals[8] };
-        if (l) await db.update('leads', id, obj);
-        else { await db.insert('leads', obj); }
-        go('leads');
-      };
-      const st = $('#skiptrace', el);
-      if (st) st.onclick = () => { $('#st-note', el).style.display = 'block'; };
+      $('#edit-lead', el).onclick = () => this.sheet(l);
+      $('#skiptrace', el).onclick = () => { $('#st-note', el).style.display = 'block'; };
       const aj = $('#add-job', el); if (aj) aj.onclick = () => go('jobs', { newFor: id });
       const ad = $('#add-draft', el); if (ad) ad.onclick = () => go('comms', { newFor: id });
       $$('[data-gojob]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('jobs', +a.dataset.gojob); });
+    },
+    // AccuLynx-style form sheet for adding/editing a prospect or client.
+    sheet(l) {
+      const isNew = !l;
+      const v = (k, d) => h(l && l[k] != null && l[k] !== '' ? l[k] : (d || ''));
+      const status = (l && l.status) || 'lead';
+      const body = openSheet(isNew ? 'New prospect / client' : 'Edit contact', `
+        <div class="seg" id="sh-type" style="margin-bottom:14px">
+          <button type="button" data-t="lead" class="${status === 'customer' ? '' : 'on'}">Prospect</button>
+          <button type="button" data-t="customer" class="${status === 'customer' ? 'on' : ''}">Client</button>
+        </div>
+        <div class="form-grid">
+          <div style="grid-column:1/-1"><label>Full name *</label><input id="sh-name" value="${v('name')}" placeholder="Jane Homeowner" autocomplete="off"></div>
+          <div><label>Phone</label><input id="sh-phone" type="tel" inputmode="tel" value="${v('phone')}" placeholder="(405) 555-0100"></div>
+          <div><label>Label</label><select id="sh-phone-label">${PHONE_LABELS.map((x) => `<option ${v('phone_label', 'Mobile') === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+          <div><label>Phone 2</label><input id="sh-phone2" type="tel" inputmode="tel" value="${v('phone2')}" placeholder="(405) 555-0100"></div>
+          <div><label>Label</label><select id="sh-phone2-label">${PHONE_LABELS.map((x) => `<option ${v('phone2_label', 'Home') === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+          <div style="grid-column:1/-1"><label>Email</label><input id="sh-email" type="email" inputmode="email" value="${v('email')}" placeholder="jane@example.com"></div>
+          <div style="grid-column:1/-1"><label>Street address</label><input id="sh-address" value="${v('address')}" placeholder="1234 NW 36th St" autocomplete="off"></div>
+          <div><label>City</label><input id="sh-city" value="${v('city', 'Oklahoma City')}"></div>
+          <div><label>ZIP</label><input id="sh-zip" inputmode="numeric" value="${v('zip')}" placeholder="73112"></div>
+          <div><label>Source</label><input id="sh-source" value="${v('source', 'manual')}"></div>
+          <div><label>Status</label><select id="sh-status">${LEAD_STATUSES.map((s) => `<option value="${s}" ${status === s ? 'selected' : ''}>${s.replace(/_/g, ' ')}</option>`).join('')}</select></div>
+          <div style="grid-column:1/-1"><label>Notes</label><textarea id="sh-notes" style="min-height:70px">${v('notes')}</textarea></div>
+        </div>
+        <div class="mt row-actions"><button id="sh-save">${isNew ? 'Add contact' : 'Save changes'}</button>
+        <button class="ghost" id="sh-cancel">Cancel</button></div>`);
+      $$('#sh-type button', body).forEach((b) => b.onclick = () => {
+        $$('#sh-type button', body).forEach((x) => x.classList.remove('on'));
+        b.classList.add('on');
+        $('#sh-status', body).value = b.dataset.t;
+      });
+      $('#sh-cancel', body).onclick = () => closeSheet();
+      $('#sh-save', body).onclick = async () => {
+        const val = (id2) => $('#' + id2, body).value.trim();
+        const name = val('sh-name');
+        if (!name) { alert('Name is required.'); return; }
+        const obj = { name, phone: val('sh-phone'), phone_label: val('sh-phone-label'), phone2: val('sh-phone2'), phone2_label: val('sh-phone2-label'), email: val('sh-email'), address: val('sh-address'), city: val('sh-city'), zip: val('sh-zip'), source: val('sh-source') || 'manual', status: val('sh-status'), notes: val('sh-notes') };
+        let id = l && l.id;
+        if (id) await db.update('leads', id, obj);
+        else { const r = await db.insert('leads', obj); id = r && r.id; }
+        closeSheet();
+        go('leads', id || undefined);
+      };
+      setTimeout(() => { const n = $('#sh-name', body); if (n) n.focus(); }, 300);
     },
   };
 
