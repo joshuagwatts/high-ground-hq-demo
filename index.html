@@ -282,6 +282,9 @@ a.contact-row:hover { background: var(--panel2); }
 .mailer-est td:last-child, .mailer-est th:last-child { text-align: right; }
 .mailer-total { font-size: 15px; margin: 10px 0 4px; color: #111; }
 .mailer-basis { display: inline-block; font-size: 11px; font-weight: 700; background: #fdf3e0; border: 1px solid #f0a22e; color: #8a5c00; border-radius: 999px; padding: 2px 10px; margin-left: 8px; vertical-align: middle; }
+/* ---- Flyer placeholders ---- */
+.ph { color: #a08c5b; font-style: italic; border-bottom: 2px dashed #d8c48f; padding: 0 3px; white-space: nowrap; }
+.ph-box { border: 2px dashed #d8c48f; border-radius: 10px; padding: 14px 16px; color: #6b5f4c; font-size: 14px; margin: 14px 0; background: #fffdf6; }
 </style>
 </head>
 <body>
@@ -2074,6 +2077,36 @@ a.contact-row:hover { background: var(--panel2); }
     };
   };
 
+  // Resolve the best estimate for a job: EagleView measurements first, then
+  // the latest estimate. Returns { items, total, basis }.
+  async function resolveEstimate(jobId) {
+    let items = [], total = 0, basis = null;
+    if (!jobId) return { items, total, basis };
+    const ests = await db.list('estimates', { where: { job_id: jobId }, orderBy: 'created_at', order: 'desc', limit: 5 });
+    let pick = null;
+    for (const e of ests) {
+      try { e._src = JSON.parse(e.measurements_json || '{}').source || ''; } catch (err) { e._src = ''; }
+      if (e._src === 'eagleview' && !pick) pick = e;
+    }
+    if (!pick && ests.length) pick = ests[0];
+    if (pick) {
+      try {
+        total = +(JSON.parse(pick.totals_json || '{}').total || 0);
+        const raw = pick.supplement_items_json || pick.items_json || '[]';
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) items = arr.filter((i) => i && i.name && +i.total > 0)
+          .sort((a, b) => b.total - a.total);
+        basis = pick._src === 'eagleview' ? 'eagleview' : (pick._src === 'quick' ? 'quick' : 'file');
+      } catch (err) { /* no usable estimate */ }
+    }
+    return { items, total, basis };
+  }
+  function basisBadge(basis) {
+    return basis === 'eagleview' ? 'Measured with EagleView · exact'
+      : basis === 'quick' ? 'High Ground quick estimate'
+      : basis === 'file' ? 'Estimate on file' : '';
+  }
+
   // ---------------- Estimates ----------------
   const EST = { step: 1, jobId: null, claim: {}, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null, scopes: { roof: true }, audit: [] };
 
@@ -2548,26 +2581,8 @@ a.contact-row:hover { background: var(--panel2); }
     async mailerSheet(c, targets) {
       const addrs = targets.map((t) => t.address).filter(Boolean);
       // Estimate basis: prefer EagleView measurements, then the latest estimate.
-      let items = [], total = 0, basis = null;
-      if (c.job_id) {
-        const ests = await db.list('estimates', { where: { job_id: c.job_id }, orderBy: 'created_at', order: 'desc', limit: 5 });
-        let pick = null;
-        for (const e of ests) {
-          try { e._src = JSON.parse(e.measurements_json || '{}').source || ''; } catch (err) { e._src = ''; }
-          if (e._src === 'eagleview' && !pick) pick = e;
-        }
-        if (!pick && ests.length) pick = ests[0];
-        if (pick) {
-          try {
-            total = +(JSON.parse(pick.totals_json || '{}').total || 0);
-            const raw = pick.supplement_items_json || pick.items_json || '[]';
-            const arr = JSON.parse(raw);
-            if (Array.isArray(arr)) items = arr.filter((i) => i && i.name && +i.total > 0)
-              .sort((a, b) => b.total - a.total);
-            basis = pick._src === 'eagleview' ? 'eagleview' : (pick._src === 'quick' ? 'quick' : 'file');
-          } catch (err) { /* prefill stays empty, he types it in */ }
-        }
-      }
+      const found = await resolveEstimate(c.job_id);
+      let items = found.items, total = found.total, basis = found.basis;
       // No estimate on file: offer to build one with the auto estimator.
       let builtItems = null, builtBasis = null;
       const scopeGuess = items.length ? items.slice(0, 3).map((i) => i.name).join(', ') : 'Full roof replacement';
@@ -2631,6 +2646,9 @@ a.contact-row:hover { background: var(--panel2); }
       const crows = await db.list('campaigns', { select: '*, jobs(address)', where: { id: +campaignId } });
       const c = crows[0] || null;
       const jobAddress = c && c.jobs ? c.jobs.address : '';
+      const est = await resolveEstimate(c ? c.job_id : null);
+      const badgeHtml = basisBadge(est.basis);
+      const scopeGuess = est.items.length ? est.items.slice(0, 3).map((i) => i.name).join(', ') : '';
       const co = S.settings;
       const site = 'https://www.highgroundokc.com';
       const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(site);
@@ -2643,8 +2661,17 @@ a.contact-row:hover { background: var(--panel2); }
             <div><div class="flyer-name">${h(co.company_name || 'High Ground Roofing & Construction')}</div>
             <div class="flyer-sub">Roofing · Exteriors · Insurance claims</div></div>
           </div>
-          <h1 class="flyer-head">We just finished a roof<br>near you.</h1>
-          ${jobAddress ? `<p class="flyer-job">${h(jobAddress)}</p>` : ''}
+          <h1 class="flyer-head">We just finished a roof<br>${jobAddress ? `at ${h(jobAddress)}.` : 'near you.'}</h1>
+          ${est.total > 0
+            ? `<p class="flyer-job">Approved at <b>${money(est.total).replace(/\.00$/, '')}</b>${scopeGuess ? ` — ${h(scopeGuess)}` : ''}.</p>`
+            : `<p class="flyer-job">Approved at <span class="ph">$[amount]</span>${scopeGuess ? ` — ${h(scopeGuess)}` : ' — <span class="ph">[scope]</span>'}.<br><span class="muted small">Add an estimate to this job to fill this in.</span></p>`}
+          ${est.items.length ? `
+          <p class="mailer-sub">What the project included:</p>
+          <table class="mailer-est"><tr><th>Item</th><th>Qty</th><th>Amount</th></tr>
+          ${est.items.slice(0, 8).map((it) => `<tr><td>${h(it.name)}</td><td>${h(String(it.qty))} ${h(it.unit || '')}</td><td>${money(it.total)}</td></tr>`).join('')}
+          </table>
+          <p class="mailer-total">Project total: <b>${money(est.total).replace(/\.00$/, '')}</b>${badgeHtml ? `<span class="mailer-basis">${badgeHtml}</span>` : ''}</p>`
+          : `<div class="ph-box">Estimate breakdown goes here — run a quick estimate or import the EagleView report for this job and it fills in automatically.</div>`}
           <ul class="flyer-list">
             <li><b>Free drone roof inspections</b> — 15 minutes, photos included, no obligation</li>
             <li><b>Insurance claim handling</b> — we document the damage and work the claim with your adjuster</li>
@@ -2682,15 +2709,13 @@ a.contact-row:hover { background: var(--panel2); }
       const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + encodeURIComponent(site);
       const lo = Math.round(ctx.total * 0.9 / 100) * 100, hi = Math.round(ctx.total * 1.1 / 100) * 100;
       const range = ctx.total > 0 ? `${money(lo).replace(/\.00$/, '')}–${money(hi).replace(/\.00$/, '')}` : '';
-      const basisBadge = ctx.basis === 'eagleview' ? 'Measured with EagleView · exact'
-        : ctx.basis === 'quick' ? 'High Ground quick estimate'
-        : ctx.basis === 'file' ? 'Estimate on file' : '';
+      const badgeHtml = basisBadge(ctx.basis);
       const estTable = (ctx.items && ctx.items.length) ? `
           <p class="mailer-sub">What the project included:</p>
           <table class="mailer-est"><tr><th>Item</th><th>Qty</th><th>Amount</th></tr>
           ${ctx.items.slice(0, 8).map((it) => `<tr><td>${h(it.name)}</td><td>${h(String(it.qty))} ${h(it.unit || '')}</td><td>${money(it.total)}</td></tr>`).join('')}
           </table>
-          <p class="mailer-total">Project total: <b>${money(ctx.total).replace(/\.00$/, '')}</b>${basisBadge ? `<span class="mailer-basis">${basisBadge}</span>` : ''}</p>`
+          <p class="mailer-total">Project total: <b>${money(ctx.total).replace(/\.00$/, '')}</b>${badgeHtml ? `<span class="mailer-basis">${badgeHtml}</span>` : ''}</p>`
         : '';
       el.innerHTML = `
         <div class="toolbar no-print"><button class="ghost small" id="ml-back">← Back to campaign</button>
