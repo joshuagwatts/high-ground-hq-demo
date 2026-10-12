@@ -264,6 +264,15 @@ a.contact-row:hover { background: var(--panel2); }
 @media print {
   .mailer-page { border-radius: 0; max-width: none; margin: 0; }
 }
+
+/* ---- Comms draft cards (phone-first inbox) ---- */
+.draft-card { margin-bottom: 12px; }
+.draft-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.draft-preview { color: var(--muted); font-size: 14px; margin-bottom: 12px; line-height: 1.5; }
+.draft-card .row-actions { gap: 8px; }
+@media (max-width: 720px) {
+  .draft-card .row-actions .btn, .draft-card .row-actions button, .draft-card .row-actions a.ghost { flex: 1 1 45%; text-align: center; }
+}
 </style>
 </head>
 <body>
@@ -1663,7 +1672,8 @@ a.contact-row:hover { background: var(--panel2); }
             ${emailRow(l.email)}
             ${addressRow(l)}
             ${l.notes ? `<p class="muted" style="margin:10px 0 0">${h(l.notes)}</p>` : ''}
-            <div class="mt"><button class="ghost small" id="skiptrace">Run skip trace</button></div>
+            <div class="mt row-actions"><button class="ghost small" id="skiptrace">Run skip trace</button>
+              <button class="ghost small" id="enrich">🔍 Find info</button></div>
             <div class="note" id="st-note" style="display:none">Skip trace isn\u2019t connected yet — the provider gets added when the business owner takes over. This button will pull name → phone/email/address then.</div>
           </div>
           <div>
@@ -1678,6 +1688,7 @@ a.contact-row:hover { background: var(--panel2); }
       $('#back', el).onclick = () => go('leads');
       $('#edit-lead', el).onclick = () => this.sheet(l);
       $('#skiptrace', el).onclick = () => { $('#st-note', el).style.display = 'block'; };
+      $('#enrich', el).onclick = () => window.HQ.enrichSheet(l, 'lead', () => go('leads', l.id));
       const aj = $('#add-job', el); if (aj) aj.onclick = () => go('jobs', { newFor: id });
       const ad = $('#add-draft', el); if (ad) ad.onclick = () => go('comms', { newFor: id });
       $$('[data-gojob]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('jobs', +a.dataset.gojob); });
@@ -1971,7 +1982,7 @@ a.contact-row:hover { background: var(--panel2); }
 <script>// High Ground HQ — views: Estimates (supplement builder), Comms, Campaigns, Settings.
 (function () {
   'use strict';
-  const { $, $$, h, money, fmtDate, badge, db, S, go, TEMPLATES, fillTemplate, aiPromptForDraft, openSheet, closeSheet } = window.HQ;
+  const { $, $$, h, money, fmtDate, badge, db, S, go, TEMPLATES, fillTemplate, aiPromptForDraft, openSheet, closeSheet, phoneDigits } = window.HQ;
   const SE = window.HQSupplement;
   const PA = window.HQParsers;
   let mailerCtx = null; // approved scope/total confirmed in the mailer sheet, consumed by VIEWS.mailer
@@ -2023,6 +2034,37 @@ a.contact-row:hover { background: var(--panel2); }
     return 2 * R * Math.asin(Math.sqrt(a));
   }
 
+  // ---------------- Free enrichment ----------------
+  // No paid API: one-tap deep links into the free sources (assessor for
+  // ownership/property details, people-search + web for phones), then capture
+  // what you find right here. Phones are hit-or-miss until the skip-trace API.
+  window.HQ.enrichSheet = async function (rec, kind, onSave) {
+    const name = rec.name || '', addr = rec.address || '', city = rec.city || 'Oklahoma City';
+    const enc = encodeURIComponent;
+    const links = [
+      ['🏛 Assessor', 'https://www.oklahomacounty.org/assessor', 'OK County Assessor — free parcel search: owner, assessed value, property details'],
+      ['🔍 People search', `https://www.truepeoplesearch.com/results?name=${enc(name)}&citystatezip=${enc(city + ', OK')}`, 'Free people search — phones are hit-or-miss'],
+      ['🌐 Web', `https://www.google.com/search?q=${enc('"' + name + '" "' + addr + '" phone number')}`, 'Catch-all web search for a number'],
+    ];
+    const body = openSheet('Find info — ' + (name || addr || 'record'), `
+      <p class="muted">Tap a source, find the info, paste it below. The assessor reliably gives ownership + property details; phone numbers stay hit-or-miss until the paid skip-trace.</p>
+      <div class="row-actions" style="margin-bottom:14px">${links.map(([t, u, d]) => `<a class="ghost small" href="${u}" target="_blank" rel="noopener" title="${h(d)}">${t} ↗</a>`).join('')}</div>
+      <label>Owner / contact name</label><input id="en-name" value="${h(name)}">
+      <div class="form-grid">
+        <div><label>Phone</label><input id="en-phone" inputmode="tel" value="${h(rec.phone || '')}"></div>
+        <div><label>Email</label><input id="en-email" inputmode="email" value="${h(rec.email || '')}"></div>
+      </div>
+      <label>Notes</label><textarea id="en-notes" style="min-height:80px">${h(rec.notes || '')}</textarea>
+      <div class="mt row-actions"><button id="en-save">Save</button></div>`);
+    $('#en-save', body).onclick = async () => {
+      const patch = { name: $('#en-name', body).value.trim(), phone: $('#en-phone', body).value.trim(), email: $('#en-email', body).value.trim(), notes: $('#en-notes', body).value.trim() };
+      if (kind === 'lead') await db.update('leads', rec.id, patch);
+      else await db.update('campaign_targets', rec.id, patch);
+      closeSheet();
+      if (onSave) onSave();
+    };
+  };
+
   // ---------------- Estimates ----------------
   const EST = { step: 1, jobId: null, claim: {}, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null, scopes: { roof: true }, audit: [] };
 
@@ -2044,13 +2086,96 @@ a.contact-row:hover { background: var(--panel2); }
     // The real Supplement Builder, plugged in (exported artifact, embedded
     // via srcdoc so it runs isolated but offline-capable). It keeps its own
     // job library; nothing here phones home.
+    actions() { return `<button class="small" id="btn-quick-est">+ Quick estimate</button>`; },
+    bindActions(bar) { $('#btn-quick-est', bar).onclick = () => this.quickSheet(); },
     async render(el) {
       el.innerHTML = `
+        <div class="note" style="margin-bottom:12px">Need a fast number? <b>Quick estimate</b> above builds a High Ground ballpark from squares + pitch in seconds. Import the EagleView report later to upgrade it to exact measurements.</div>
         <iframe class="embed-frame" title="Supplement Builder"
           sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"></iframe>`;
       const f = el.querySelector('iframe');
       if (window.HQ_ESTMAKER_HTML) f.srcdoc = window.HQ_ESTMAKER_HTML;
       else f.srcdoc = '<p style="font-family:sans-serif;padding:24px">Estimate maker failed to load — the app bundle is missing its data file.</p>';
+    },
+
+    // High Ground quick measurement: squares + pitch in, ballpark out.
+    // EagleView import upgrades it to exact measurements afterwards.
+    async quickSheet() {
+      const jobs = await db.list('jobs', { select: 'id, address', orderBy: 'created_at', order: 'desc', limit: 50 });
+      const body = openSheet('Quick estimate', `
+        <p class="muted">High Ground's fast number — squares + pitch, done in seconds. Import the EagleView report afterwards to upgrade it to exact measurements.</p>
+        <label>Job (optional)</label><select id="qe-job"><option value="">— none —</option>
+          ${jobs.map((j) => `<option value="${j.id}">${h(j.address)}</option>`).join('')}</select>
+        <div class="form-grid">
+          <div><label>Roof squares *</label><input id="qe-sq" inputmode="decimal" placeholder="28"></div>
+          <div><label>Pitch (e.g. 6/12)</label><input id="qe-pitch" placeholder="6/12"></div>
+          <div><label>Stories</label><input id="qe-stories" inputmode="numeric" value="1"></div>
+          <div><label>Waste %</label><input id="qe-waste" inputmode="decimal" value="10"></div>
+          <div><label>Eaves LF <span class="muted">(auto)</span></label><input id="qe-eaves" inputmode="decimal" placeholder="auto"></div>
+          <div><label>Ridge LF <span class="muted">(auto)</span></label><input id="qe-ridge" inputmode="decimal" placeholder="auto"></div>
+        </div>
+        <div class="mt row-actions"><button id="qe-go">Generate</button></div>
+        <div id="qe-out"></div>`);
+      $('#qe-go', body).onclick = async () => {
+        const sq = parseFloat($('#qe-sq', body).value) || 0;
+        if (!sq) { alert('Enter the roof squares.'); return; }
+        const waste = parseFloat($('#qe-waste', body).value) || 10;
+        const side = Math.sqrt(sq * 100);
+        const eaves = parseFloat($('#qe-eaves', body).value) || Math.round(side * 2.4);
+        const ridge = parseFloat($('#qe-ridge', body).value) || Math.round(side * 1.1);
+        const rakes = Math.round(side * 1.6);
+        const m = {
+          source: 'quick', roofSQ: sq, shinglesSQ: sq, totalSqFt: Math.round(sq * 100),
+          wastePct: waste, pitch: $('#qe-pitch', body).value.trim(), stories: $('#qe-stories', body).value.trim() || '1',
+          eavesLF: eaves, rakesLF: rakes, ridgesLF: ridge, hipsLF: 0, valleysLF: 0,
+          starterLF: eaves, dripEdgeLF: eaves + rakes, ridgeCapLF: ridge, pipeCount: 2,
+        };
+        const res = SE.buildSupplement(m, { priceBook: S.priceBook || {} });
+        const jobId = $('#qe-job', body).value || null;
+        const row = await db.insert('estimates', {
+          job_id: jobId, measurements_json: JSON.stringify(m),
+          supplement_items_json: JSON.stringify(res.items),
+          totals_json: JSON.stringify({ subtotal: res.subtotal, total: res.total }),
+        });
+        this.renderQuickResult(body, { m, res, rowId: row.id, jobId, prev: null });
+      };
+    },
+
+    renderQuickResult(body, { m, res, rowId, jobId, prev }) {
+      const top = res.items.slice(0, 8);
+      $('#qe-out', body).innerHTML = `
+        <div class="panel" style="margin-top:14px">
+          <h2 style="margin-top:0">${m.source === 'eagleview' ? 'EagleView' : 'Quick'} estimate — ${money(res.total)}</h2>
+          ${prev ? `<p class="muted">Upgraded from the quick ballpark of ${money(prev)}. Exact EagleView measurements replaced the rough ones.</p>` : `<p class="muted">${m.roofSQ} SQ · pitch ${h(m.pitch || '—')} · eaves/ridge auto-estimated — import EagleView for exact numbers.</p>`}
+          <table><tr><th>Item</th><th>Qty</th><th>Total</th></tr>
+          ${top.map((i) => `<tr><td>${h(i.name)}</td><td>${i.qty} ${h(i.unit)}</td><td>${money(i.total)}</td></tr>`).join('')}
+          </table>
+          <p class="muted small">${res.items.length} line items · subtotal ${money(res.subtotal)}</p>
+          ${m.source === 'quick' ? `<div class="mt row-actions">
+            <label class="ghost small" style="cursor:pointer">⬆ Upgrade with EagleView report<input type="file" id="qe-ev" accept=".pdf,application/pdf" hidden></label>
+          </div><p class="muted small">Drop the EagleView PDF — exact measurements replace the rough ones and the estimate rebuilds.</p>` : ''}
+        </div>`;
+      const ev = $('#qe-ev', body);
+      if (ev) ev.onchange = async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        $('#qe-out', body).innerHTML = '<p class="muted">Reading EagleView report…</p>';
+        try {
+          const text = await extractPdfText(f);
+          const parsed = PA.parseEagleViewText(text);
+          if (!parsed.found.length) { alert('Could not read measurements from that PDF.'); return; }
+          const m2 = SE.deriveMeasurements(parsed.raw);
+          m2.source = 'eagleview';
+          const res2 = SE.buildSupplement(m2, { priceBook: S.priceBook || {} });
+          const row2 = await db.insert('estimates', {
+            job_id: jobId, measurements_json: JSON.stringify(m2),
+            supplement_items_json: JSON.stringify(res2.items),
+            totals_json: JSON.stringify({ subtotal: res2.subtotal, total: res2.total }),
+            claim_info_json: JSON.stringify({ supersedes: rowId, source: 'eagleview' }),
+          });
+          this.renderQuickResult(body, { m: m2, res: res2, rowId: row2.id, jobId, prev: res.total });
+        } catch (err) { alert('Could not read that PDF: ' + String(err.message || err).slice(0, 120)); }
+      };
     },
   };
 
@@ -2066,8 +2191,27 @@ a.contact-row:hover { background: var(--panel2); }
       const where = {};
       if (kf) where.kind = kf;
       if (sf) where.status = sf;
-      const drafts = await db.list('drafts', { select: '*, leads(name)', where, orderBy: 'created_at', order: 'desc' });
-      drafts.forEach((d) => { d.lead_name = d.leads ? d.leads.name : null; });
+      const drafts = await db.list('drafts', { select: '*, leads(name, phone, email)', where, orderBy: 'created_at', order: 'desc' });
+      drafts.forEach((d) => {
+        d.lead_name = d.leads ? d.leads.name : null;
+        d.lead_phone = d.leads ? d.leads.phone : '';
+        d.lead_email = d.leads ? d.leads.email : '';
+      });
+      // Real sending, free tier: hand the finished message to the phone's own
+      // apps. Email opens in the mail app, texts in the messaging app, calls
+      // in the dialer. He still taps send — nothing ever fires on its own.
+      const sendLinks = (d) => {
+        const enc = encodeURIComponent, out = [];
+        if (d.kind === 'email' && d.lead_email)
+          out.push(`<a class="ghost small" href="mailto:${h(d.lead_email)}?subject=${enc(d.subject || '')}&body=${enc(d.body)}">✉ Send email</a>`);
+        if (d.kind !== 'email' && d.lead_phone)
+          out.push(`<a class="ghost small" href="sms:${phoneDigits(d.lead_phone)}?&body=${enc(d.body)}">💬 Send text</a>`);
+        if (d.kind === 'call' && d.lead_phone)
+          out.push(`<a class="ghost small" href="tel:${phoneDigits(d.lead_phone)}">📞 Call now</a>`);
+        return out.join('');
+      };
+      const noContact = (d) => (d.kind === 'email' && !d.lead_email) || (d.kind !== 'email' && !d.lead_phone)
+        ? '<span class="muted small">No ' + (d.kind === 'email' ? 'email' : 'phone') + ' on this lead — add one to send.</span>' : '';
       el.innerHTML = `
         <div class="toolbar">
           <select id="c-kf" style="width:auto"><option value="">All kinds</option>
@@ -2075,18 +2219,27 @@ a.contact-row:hover { background: var(--panel2); }
           <select id="c-sf" style="width:auto"><option value="">All statuses</option>
             ${['draft', 'approved', 'sent'].map((s) => `<option ${sf === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="panel"><table><tr><th></th><th>To</th><th>Subject / preview</th><th>Status</th><th></th></tr>
-        ${drafts.map((d) => `<tr><td>${badge(d.kind)}</td><td>${h(d.lead_name || '—')}</td>
-          <td><a href="#" data-draft="${d.id}">${h(d.subject || d.body.slice(0, 60))}</a></td>
-          <td>${badge(d.status)}</td>
-          <td><div class="row-actions">${d.status === 'draft' ? `<button class="small" data-approve="${d.id}">Approve</button>` : ''}</div></td></tr>`).join('')
-          || '<tr><td colspan="5" class="muted">No drafts. Nothing waiting on your tap.</td></tr>'}
-        </table></div>
-        <div class="note">Free tier: drafts live here until you approve them. Email goes out as a Gmail draft (ask Muse in chat to file it — you send it yourself). Texts and calls light up when the owner adds Twilio. Nothing ever sends on its own.</div>`;
+        ${drafts.map((d) => `
+        <div class="panel draft-card">
+          <div class="draft-head">${badge(d.kind)}<strong>${h(d.lead_name || 'No lead')}</strong>${badge(d.status)}<span class="muted small">${fmtDate(d.created_at)}</span></div>
+          <div class="draft-preview">${h((d.subject ? d.subject + ' — ' : '') + d.body.slice(0, 140))}${d.body.length > 140 ? '…' : ''}</div>
+          <div class="row-actions">
+            <button class="ghost small" data-open="${d.id}">Open</button>
+            ${d.status === 'draft' ? `<button class="small" data-approve="${d.id}">Approve</button>` : ''}
+            ${d.status === 'approved' ? sendLinks(d) : ''}
+            ${d.status === 'approved' ? `<button class="ghost small" data-sent="${d.id}">Mark sent</button>` : ''}
+            ${d.status === 'approved' ? noContact(d) : ''}
+          </div>
+        </div>`).join('') || '<div class="panel muted">No drafts. Nothing waiting on your tap.</div>'}
+        <div class="note">Approve a draft, then send it straight from your phone — email opens in your mail app, texts in messaging, calls in the dialer. Nothing ever sends on its own.</div>`;
       $('#c-kf', el).onchange = (e) => { this._kf = e.target.value; this.render(el); };
       $('#c-sf', el).onchange = (e) => { this._sf = e.target.value; this.render(el); };
-      $$('[data-draft]', el).forEach((a) => a.onclick = (e) => { e.preventDefault(); go('comms', +a.dataset.draft); });
+      $$('[data-open]', el).forEach((a) => a.onclick = () => go('comms', +a.dataset.open));
       $$('[data-approve]', el).forEach((b) => b.onclick = async () => { await db.update('drafts', +b.dataset.approve, { status: 'approved' }); this.render(el); });
+      $$('[data-sent]', el).forEach((b) => b.onclick = async () => {
+        if (!confirm('Mark this as sent?')) return;
+        await db.update('drafts', +b.dataset.sent, { status: 'sent' }); this.render(el);
+      });
     },
 
     async composer(el, leadId, draftId, jobId) {
@@ -2120,6 +2273,12 @@ a.contact-row:hover { background: var(--panel2); }
             <button id="d-approve">${d && d.status !== 'draft' ? 'Save' : 'Save & approve'}</button>
             ${d ? `<button class="danger" id="d-del">Delete</button>` : ''}
           </div>
+          ${d && d.status === 'approved' ? `<div class="mt row-actions" id="d-sendrow">
+            <span class="muted small">Send it:</span>
+            <a class="ghost small" id="d-send-email" href="#">✉ Email app</a>
+            <a class="ghost small" id="d-send-text" href="#">💬 Text app</a>
+            <button class="ghost small" id="d-mark-sent">Mark sent</button>
+          </div>` : ''}
           <div class="note" id="ai-note" style="display:none">Prompt copied — paste it to Muse in chat, paste the rewrite back here. That\u2019s the free AI loop until an API key lands in Settings.</div>
         </div>
         <div class="panel"><h2>Merge fields</h2>
@@ -2161,6 +2320,28 @@ a.contact-row:hover { background: var(--panel2); }
         await navigator.clipboard.writeText(prompt);
         $('#ai-note', el).style.display = 'block';
       };
+      // Send row (approved drafts): hand the message to the phone's own apps.
+      if ($('#d-sendrow', el) && d) {
+        const refreshSendLinks = () => {
+          const l = leads.find((x) => x.id === +$('#d-lead', el).value) || {};
+          const enc = encodeURIComponent;
+          const em = $('#d-send-email', el), tx = $('#d-send-text', el);
+          const subj = $('#d-subject', el).value, body = $('#d-body', el).value;
+          if (l.email) { em.href = `mailto:${l.email}?subject=${enc(subj)}&body=${enc(body)}`; em.style.display = ''; }
+          else em.style.display = 'none';
+          if (l.phone) { tx.href = `sms:${phoneDigits(l.phone)}?&body=${enc(body)}`; tx.style.display = ''; }
+          else tx.style.display = 'none';
+        };
+        $('#d-lead', el).addEventListener('change', refreshSendLinks);
+        $('#d-subject', el).addEventListener('input', refreshSendLinks);
+        $('#d-body', el).addEventListener('input', refreshSendLinks);
+        refreshSendLinks();
+        $('#d-mark-sent', el).onclick = async () => {
+          if (!confirm('Mark this as sent?')) return;
+          await db.update('drafts', d.id, { status: 'sent' });
+          go('comms');
+        };
+      }
       const collect = () => ({
         kind: $('#d-kind', el).value,
         lead_id: $('#d-lead', el).value || null,
@@ -2292,6 +2473,8 @@ a.contact-row:hover { background: var(--panel2); }
           <td>${badge(t.status)}</td>
           <td><div class="row-actions">
             ${t.draft_id && t.dstatus === 'draft' ? `<button class="small" data-tapprove="${t.draft_id}" data-tid="${t.id}">Approve</button>` : ''}
+            <button class="ghost small" data-tenrich="${t.id}">🔍</button>
+            <button class="ghost small" data-tjob="${t.id}" data-addr="${encodeURIComponent(t.address)}">+ Job</button>
           </div></td></tr>`).join('') || '<tr><td colspan="6" class="muted">No targets yet.</td></tr>'}
         </table></div>
         <div class="note">Drafts generate from the “we just finished your neighbor\u2019s roof” templates with each address merged in. Approve each one — nothing sends itself.</div>`;
@@ -2340,6 +2523,17 @@ a.contact-row:hover { background: var(--panel2); }
       const saveField = async (tid, field, val) => { await db.update('campaign_targets', tid, { [field]: val }); };
       $$('[data-tname]', el).forEach((i) => i.onchange = () => saveField(i.dataset.tname, 'name', i.value.trim()));
       $$('[data-tphone]', el).forEach((i) => i.onchange = () => saveField(i.dataset.tphone, 'phone', i.value.trim()));
+      // Job profiles from people + addresses: one tap turns a target into a job.
+      $$('[data-tenrich]', el).forEach((b) => b.onclick = async () => {
+        const t = targets.find((x) => x.id === +b.dataset.tenrich);
+        if (t) window.HQ.enrichSheet(t, 'target', () => go('campaigns', id));
+      });
+      $$('[data-tjob]', el).forEach((b) => b.onclick = async () => {
+        const addr = decodeURIComponent(b.dataset.addr);
+        const t = targets.find((x) => x.id === +b.dataset.tjob);
+        await db.insert('jobs', { address: addr, status: 'estimate', notes: t && t.name ? 'Contact: ' + t.name + (t.phone ? ' ' + t.phone : '') : '' });
+        alert('Job profile created for ' + addr);
+      });
     },
     // "What got approved at that location?" — confirm scope + total, then build one PDF mailer page per target.
     async mailerSheet(c, targets) {
