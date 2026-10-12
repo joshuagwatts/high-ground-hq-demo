@@ -38,6 +38,30 @@
     background: #1a2230; color: #e8edf4; border: 1px solid #2c3648; border-radius: 10px;
   }
   #hs-locate:active { background: #232d40; }
+  #hs-select-toggle {
+    flex: 0 0 auto; padding: 0 12px; height: 40px; font-size: 14px; font-weight: 700; cursor: pointer;
+    background: #1a2230; color: #e8edf4; border: 1px solid #2c3648; border-radius: 10px; white-space: nowrap;
+  }
+  #hs-select-toggle.on { background: #f5b942; color: #14100a; border-color: #f5b942; }
+  /* roof selection pins + floating bar */
+  .hs-sel-wrap { background: none; border: none; }
+  .hs-sel-pin {
+    width: 36px; height: 36px; border-radius: 11px; background: #f5b942; color: #14100a;
+    display: flex; align-items: center; justify-content: center; gap: 1px;
+    font-weight: 800; border: 2px solid rgba(255,255,255,.35);
+    box-shadow: 0 2px 12px rgba(0,0,0,.55); cursor: pointer;
+  }
+  .hs-sel-n { font-size: 14px; }
+  .hs-sel-check { font-size: 13px; }
+  #hs-select-bar {
+    position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(20,26,36,.96); border: 1px solid rgba(245,185,66,.45);
+    border-radius: 14px; padding: 10px 14px; font-size: 14px; font-weight: 700;
+  }
+  #hs-select-bar[hidden] { display: none; }
+  #hs-sel-clear { background: none; border: 1px solid #2c3648; color: #9fb0c8; border-radius: 9px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
+  #hs-sel-send { background: #f5b942; border: none; color: #14100a; border-radius: 9px; padding: 9px 14px; font-weight: 800; cursor: pointer; }
   #view { flex: 1 1 auto; position: relative; overflow-y: auto; overflow-x: hidden; }
   /* Override the tab-bar padding from the GC stylesheet — no tabs in the fork. */
   .hs-wrap { min-height: 100%; padding-bottom: 1.5rem !important; }
@@ -60,6 +84,7 @@
     <input type="search" id="hs-addr-q" placeholder="Address in Oklahoma" enterkeyhint="search" aria-label="Search address" />
   </form>
   <button id="hs-locate" title="My location" aria-label="My location">◎</button>
+  <button id="hs-select-toggle" title="Select roofs for mailers" aria-label="Select roofs">☐ Select</button>
 </header>
 <main id="view">
   <div class="hs-wrap">
@@ -80,6 +105,12 @@
   </div>
 </main>
 <div id="hs-status" role="status"></div>
+<div id="hs-select-bar" hidden>
+  <span id="hs-sel-count">0 roofs selected</span>
+  <span style="flex:1"></span>
+  <button id="hs-sel-clear">Clear</button>
+  <button id="hs-sel-send">Send to HQ mailer →</button>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script type="module" src="./boot.js"></script>
 </body>

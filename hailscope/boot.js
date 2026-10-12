@@ -64,6 +64,92 @@ const persist = () => {
 let wxState = { lat: null, lon: null, address: "", data: null, viewport: false };
 let hailTapGen = 0;
 
+/* ---------- roof selection mode: checkbox pins -> HQ mailer ---------- */
+let selectMode = false;
+let leafletMap = null;
+let selSeq = 0;
+const selections = new Map(); // key -> { lat, lon, addr, marker }
+
+function captureLeafletMap() {
+  if (!window.L || window.L.map.__hqSelectWrapped) return;
+  const orig = window.L.map;
+  window.L.map = function (...args) {
+    const m = orig.apply(this, args);
+    if (!leafletMap) leafletMap = m;
+    return m;
+  };
+  window.L.map.__hqSelectWrapped = true;
+}
+function selKey(lat, lon) { return lat.toFixed(5) + "," + lon.toFixed(5); }
+function selIcon(n) {
+  return window.L.divIcon({
+    className: "hs-sel-wrap",
+    html: `<div class="hs-sel-pin"><span class="hs-sel-n">${n}</span><span class="hs-sel-check">✓</span></div>`,
+    iconSize: [36, 36], iconAnchor: [18, 18],
+  });
+}
+async function reverseAddr(lat, lon) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`, { headers: { Accept: "application/json" } });
+    const d = await r.json();
+    const a = d.address || {};
+    if (a.house_number && a.road) return `${a.house_number} ${a.road}`;
+    return d.display_name ? d.display_name.split(",").slice(0, 2).join(",").trim() : "";
+  } catch { return ""; }
+}
+function refreshSelectBar() {
+  const bar = $("#hs-select-bar");
+  if (!bar) return;
+  const n = selections.size;
+  bar.hidden = !selectMode && n === 0;
+  const cnt = $("#hs-sel-count");
+  if (cnt) cnt.textContent = n === 1 ? "1 roof selected" : `${n} roofs selected`;
+}
+function removeSelection(key) {
+  const s = selections.get(key);
+  if (s) { try { leafletMap.removeLayer(s.marker); } catch { /* gone */ } selections.delete(key); }
+  refreshSelectBar();
+}
+async function toggleSelectRoof(lat, lon) {
+  const key = selKey(lat, lon);
+  if (selections.has(key)) { removeSelection(key); return; }
+  if (!leafletMap || !window.L) return;
+  setStatus("Finding address…");
+  const addr = await reverseAddr(lat, lon);
+  const n = ++selSeq;
+  const marker = window.L.marker([lat, lon], { icon: selIcon(n) }).addTo(leafletMap);
+  marker.on("click", () => removeSelection(key));
+  selections.set(key, { lat, lon, addr: addr || `${lat.toFixed(5)}, ${lon.toFixed(5)}`, marker });
+  setStatus(selections.size === 1 ? "1 roof selected" : `${selections.size} roofs selected`);
+  refreshSelectBar();
+}
+function clearSelections() {
+  for (const key of [...selections.keys()]) removeSelection(key);
+  selSeq = 0;
+}
+function sendSelectionToHQ() {
+  const addrs = [...selections.values()].map((s) => s.addr).filter(Boolean);
+  if (!addrs.length) return;
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: "hq-roof-selection", addresses: addrs }, "*");
+  }
+  setStatus(`Sent ${addrs.length} address${addrs.length === 1 ? "" : "es"} to HQ — open Campaigns to build the mailers.`);
+}
+function wireSelectMode() {
+  const tgl = $("#hs-select-toggle");
+  if (tgl) tgl.onclick = () => {
+    selectMode = !selectMode;
+    tgl.classList.toggle("on", selectMode);
+    tgl.textContent = selectMode ? "☑ Selecting…" : "☐ Select";
+    setStatus(selectMode ? "Tap roofs to select them — tap again to remove." : "");
+    refreshSelectBar();
+  };
+  const send = $("#hs-sel-send");
+  if (send) send.onclick = sendSelectionToHQ;
+  const clr = $("#hs-sel-clear");
+  if (clr) clr.onclick = () => { clearSelections(); setStatus(""); };
+}
+
 /* ---------- storm search for the visible map area (from onHailViewport) ---------- */
 async function onHailViewport() {
   const gen = ++hailTapGen;
@@ -346,9 +432,11 @@ async function boot() {
   wireSearch();
   wireLocateMe();
   wireLayerButtons(cfg);
+  wireSelectMode();
+  captureLeafletMap();
   mountMap($("#wx-map"), cfg, {
     center,
-    onTap: onHailTap,
+    onTap: (lat, lon, opts) => { if (selectMode) toggleSelectRoof(lat, lon); else onHailTap(lat, lon, opts); },
     onHold: (lat, lon) => onHailTap(lat, lon),
     product: "hail",
     base: "sat",
