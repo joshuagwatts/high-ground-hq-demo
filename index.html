@@ -250,6 +250,11 @@ a.contact-row:hover { background: var(--panel2); }
 .contact-act { margin-left: auto; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; }
 .linklike { color: var(--accent); text-decoration: none; font-weight: 600; }
 .linklike:hover { text-decoration: underline; }
+
+/* ---- Auto estimate mailer: nearby-houses checklist ---- */
+.checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 12px; max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--panel2); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 3px 0; cursor: pointer; }
+.check input { accent-color: var(--accent); width: 15px; height: 15px; }
 </style>
 </head>
 <body>
@@ -1228,6 +1233,9 @@ a.contact-row:hover { background: var(--panel2); }
     { id: 'neighbor_done_email', kind: 'email', name: 'Email — we just finished your neighbor\u2019s roof',
       subject: 'We just finished a roof on {{street}} — free inspection?',
       body: 'Hi {{name}},\n\nThis is Josh with High Ground Roofing & Construction. We just wrapped a full roof replacement at {{job_address}}, right near you.\n\nAfter the May hail, a lot of roofs on {{street}} took damage that isn\u2019t visible from the ground. We do free 15-minute inspections with drone photos and handle the insurance paperwork if there\u2019s a claim to file.\n\nWant me to swing by this week?\n\n— Josh\nHigh Ground Roofing & Construction\n{{company_phone}}' },
+    { id: 'auto_estimate_email', kind: 'email', name: 'Email — auto estimate for neighbor of recent job',
+      subject: 'What a new roof runs on {{street}}',
+      body: 'Hi {{name}},\n\nI\u2019m Josh with High Ground Roofing & Construction. We just finished a full roof replacement at {{job_address}}{{job_when}}.\n\n{{estimate_line}}\n\nI do free 15-minute drone inspections with photos — no obligation, and I handle the insurance paperwork if there\u2019s a claim to file.\n\nWant me to swing by this week?\n\n— Josh\nHigh Ground Roofing & Construction\n{{company_phone}}' },
     { id: 'hail_check_text', kind: 'text', name: 'Text — hail damage check',
       subject: '',
       body: 'Hi {{name}}, Josh with High Ground Roofing. We just finished a roof near {{job_address}} and several homes nearby took hail in the May storm. Free 15-min drone inspection — want me to stop by this week? Reply STOP to opt out.' },
@@ -1939,6 +1947,38 @@ a.contact-row:hover { background: var(--panel2); }
   const SE = window.HQSupplement;
   const PA = window.HQParsers;
 
+  // ---- Auto estimate mailer: geocode a job, then pull nearby houses from
+  // ---- free OpenStreetMap data (Nominatim + Overpass). No keys, no cost.
+  async function nominatimGeocode(address) {
+    const q = encodeURIComponent(address + ', Oklahoma City, OK');
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`, { headers: { Accept: 'application/json' } });
+    const d = await r.json();
+    if (!d || !d.length) return null;
+    return { lat: +d[0].lat, lon: +d[0].lon };
+  }
+  async function overpassHouses(lat, lon, radiusM) {
+    const ql = `[out:json][timeout:25];(node["addr:housenumber"]["addr:street"](around:${radiusM},${lat},${lon});way["addr:housenumber"]["addr:street"](around:${radiusM},${lat},${lon}););out center 60;`;
+    const eps = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+    for (const ep of eps) {
+      try {
+        const r = await fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(ql) });
+        const d = await r.json();
+        const out = [];
+        for (const e of (d.elements || [])) {
+          const t = e.tags || {};
+          if (t['addr:housenumber'] && t['addr:street']) out.push(`${t['addr:housenumber']} ${t['addr:street']}`);
+        }
+        if (out.length) return [...new Set(out)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).slice(0, 40);
+      } catch (err) { /* try the next endpoint */ }
+    }
+    return [];
+  }
+  function isSameHouse(foundAddr, jobAddr) {
+    const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const f = norm(foundAddr), j = norm(jobAddr);
+    return !!f && (j.startsWith(f) || f === j);
+  }
+
   // ---------------- Estimates ----------------
   const EST = { step: 1, jobId: null, claim: {}, raw: {}, adjusterText: '', adjusterItems: [], includeCovered: false, overrides: {}, result: null, scopes: { roof: true }, audit: [] };
 
@@ -2122,26 +2162,54 @@ a.contact-row:hover { background: var(--panel2); }
     },
 
     async builder(el) {
-      const jobs = await db.list('jobs', { select: 'id, address', where: { status: 'completed' }, orderBy: 'created_at', order: 'desc' });
+      const jobs = await db.list('jobs', { select: 'id, address, status, created_at', orderBy: 'created_at', order: 'desc', limit: 25 });
       el.innerHTML = `<div class="toolbar"><button class="ghost small" id="back">← All campaigns</button></div>
         <div class="panel"><h2>New neighborhood campaign</h2>
         <label>Campaign name</label><input id="cp-name" placeholder="e.g. NW 36th St canvass — Oct 2026">
-        <label>Finished job (anchors the outreach)</label><select id="cp-job"><option value="">— pick —</option>
-          ${jobs.map((j) => `<option value="${j.id}">${h(j.address)}</option>`).join('')}</select>
-        <label>Neighbor addresses (one per line — street, number, whatever you\u2019ve got)</label>
+        <label>Recent job (anchors the outreach — newest first)</label><select id="cp-job"><option value="">— pick —</option>
+          ${jobs.map((j) => `<option value="${j.id}">${h(j.address)} (${j.status} · ${fmtDate(j.created_at)})</option>`).join('')}</select>
+        <div class="mt row-actions"><button class="ghost" id="cp-find">Find houses near this job</button>
+          <span class="muted small" id="cp-find-status"></span></div>
+        <div id="cp-found" style="margin-top:10px"></div>
+        <label style="margin-top:14px">…or add neighbor addresses by hand (one per line)</label>
         <textarea id="cp-addrs" placeholder="2321 NW 36th St&#10;2325 NW 36th St&#10;…"></textarea>
         <div class="mt"><button id="cp-create">Create campaign</button></div>
-        <div class="note">Names and phone numbers fill in automatically once skip tracing is connected. Until then, add what you know per target on the next screen.</div></div>`;
+        <div class="note">The house finder uses free OpenStreetMap data around the job address — no key, no cost. Uncheck any that aren\u2019t a fit. Names and phone numbers fill in automatically once skip tracing is connected.</div></div>`;
       $('#back', el).onclick = () => go('campaigns');
+      let found = [];
+      $('#cp-find', el).onclick = async () => {
+        const jobId = $('#cp-job', el).value;
+        if (!jobId) { alert('Pick a job first.'); return; }
+        const st = $('#cp-find-status', el);
+        st.textContent = 'Locating job…';
+        try {
+          const job = jobs.find((j) => String(j.id) === String(jobId));
+          const geo = await nominatimGeocode(job.address);
+          if (!geo) throw new Error('no-geocode');
+          st.textContent = 'Finding nearby houses…';
+          const houses = await overpassHouses(geo.lat, geo.lon, 150);
+          found = houses.filter((a) => !isSameHouse(a, job.address));
+          $('#cp-found', el).innerHTML = found.length
+            ? `<label>Nearby houses (${found.length}) — uncheck any that aren\u2019t a fit</label>
+               <div class="checklist">${found.map((a, i) => `<label class="check"><input type="checkbox" data-fh="${i}" checked> ${h(a)}</label>`).join('')}</div>`
+            : '<p class="muted">No houses found nearby — add addresses by hand below.</p>';
+          st.textContent = found.length ? `Found ${found.length} houses.` : '';
+        } catch (err) {
+          st.textContent = '';
+          $('#cp-found', el).innerHTML = '<p class="muted">Couldn\u2019t reach the map services — add addresses by hand below.</p>';
+        }
+      };
       $('#cp-create', el).onclick = async () => {
         const name = $('#cp-name', el).value.trim();
-        const jobId = $('#cp-job', el).value || null;
+        const jobId = +$('#cp-job', el).value || null;
         if (!name) { alert('Name the campaign.'); return; }
+        const checked = $$('#cp-found [data-fh]:checked', el).map((c) => found[+c.dataset.fh]).filter(Boolean);
+        const manual = $('#cp-addrs', el).value.split('\n').map((s) => s.trim()).filter(Boolean);
+        const addrs = [...new Set([...checked, ...manual])];
+        if (!addrs.length) { alert('Add at least one address — use the finder or type them in.'); return; }
         const camp = await db.insert('campaigns', { name, job_id: jobId });
-        const campId = camp.id;
-        const addrs = $('#cp-addrs', el).value.split('\n').map((s) => s.trim()).filter(Boolean);
-        for (const a of addrs) await db.insert('campaign_targets', { campaign_id: campId, address: a });
-        go('campaigns', campId);
+        for (const a of addrs) await db.insert('campaign_targets', { campaign_id: camp.id, address: a });
+        go('campaigns', camp.id);
       };
     },
 
@@ -2155,7 +2223,9 @@ a.contact-row:hover { background: var(--panel2); }
       el.innerHTML = `<div class="toolbar"><button class="ghost small" id="back">← All campaigns</button></div>
         <div class="panel"><h2>${h(c.name)}</h2>
         <p class="muted">Anchored on: ${h(c.job_address || '—')} · ${badge(c.status)}</p>
-        <div class="row-actions"><button class="small" id="cp-gen">Generate drafts for all targets</button>
+        <div class="row-actions"><select id="cp-tpl" style="width:auto">
+          ${TEMPLATES.filter((t) => t.kind === 'email' || t.kind === 'text').map((t) => `<option value="${t.id}" ${t.id === 'auto_estimate_email' ? 'selected' : ''}>${h(t.name)}</option>`).join('')}
+        </select><button class="small" id="cp-gen">Generate drafts for all targets</button>
         <button class="ghost small" id="cp-flyer">Print flyer</button>
         <button class="ghost small" id="cp-add">+ Add target</button></div></div>
         <div class="panel"><table><tr><th>Address</th><th>Name</th><th>Phone</th><th>Draft</th><th>Status</th><th></th></tr>
@@ -2176,19 +2246,33 @@ a.contact-row:hover { background: var(--panel2); }
         if (a) { await db.insert('campaign_targets', { campaign_id: id, address: a.trim() }); go('campaigns', id); }
       };
       $('#cp-gen', el).onclick = async () => {
-        const emailTpl = TEMPLATES.find((t) => t.id === 'neighbor_done_email');
-        const textTpl = TEMPLATES.find((t) => t.id === 'hail_check_text');
+        const tpl = TEMPLATES.find((t) => t.id === $('#cp-tpl', el).value) || TEMPLATES[0];
+        // Anchor the estimate on the finished job's real numbers when we have them.
+        let estimateLine = '', jobWhen = '';
+        if (c.job_id) {
+          const jr = await db.list('jobs', { select: 'created_at', where: { id: c.job_id }, limit: 1 });
+          if (jr.length) jobWhen = ' on ' + fmtDate(jr[0].created_at);
+          const ests = await db.list('estimates', { where: { job_id: c.job_id }, orderBy: 'created_at', order: 'desc', limit: 1 });
+          if (ests.length) {
+            let total = 0;
+            try { total = +(JSON.parse(ests[0].totals_json || '{}').total || 0); } catch (err) {}
+            if (total > 0) {
+              const lo = Math.round(total * 0.9 / 100) * 100, hi = Math.round(total * 1.1 / 100) * 100;
+              estimateLine = `Homes like yours nearby typically run ${money(lo).replace(/\.00$/, '')}–${money(hi).replace(/\.00$/, '')} for a full replacement — I can give you an exact number with a free inspection.`;
+            }
+          }
+        }
         let n = 0;
         for (const t of targets) {
           if (t.draft_id) continue;
           const street = t.address.replace(/^\d+\s*/, '');
-          const ctx = Object.assign({}, jobCtx, { name: (t.name || 'there').split(' ')[0], address: t.address, street, city: 'Oklahoma City' });
-          const filled = fillTemplate(textTpl, ctx);
-          const nd = await db.insert('drafts', { kind: 'text', subject: filled.subject, body: filled.body, status: 'draft' });
+          const ctx = Object.assign({}, jobCtx, { name: (t.name || 'there').split(' ')[0], address: t.address, street, city: 'Oklahoma City', job_when: jobWhen, estimate_line: estimateLine });
+          const filled = fillTemplate(tpl, ctx);
+          const nd = await db.insert('drafts', { kind: tpl.kind, job_id: c.job_id, subject: filled.subject, body: filled.body, status: 'draft' });
           await db.update('campaign_targets', t.id, { draft_id: nd.id, status: 'drafted' });
           n++;
         }
-        alert('Generated ' + n + ' text drafts. Review and approve each one.');
+        alert('Generated ' + n + ' drafts. Review and approve each one — nothing sends itself.');
         go('campaigns', id);
       };
       $$('[data-tapprove]', el).forEach((b) => b.onclick = async () => {
