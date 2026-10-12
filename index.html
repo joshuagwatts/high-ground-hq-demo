@@ -287,6 +287,7 @@ a.contact-row:hover { background: var(--panel2); }
     <button data-view="leads"><span class="tab-ico">◎</span>Leads</button>
     <button data-view="jobs"><span class="tab-ico">⌂</span>Jobs</button>
     <button data-view="hailscope"><span class="tab-ico">◉</span>HailScope</button>
+    <button data-view="estimatormap"><span class="tab-ico">▦</span>Estimator Map</button>
     <button data-view="photos"><span class="tab-ico">▣</span>Photos</button>
     <button data-view="estimates"><span class="tab-ico">≣</span>Estimates</button>
     <button data-view="comms"><span class="tab-ico">✉</span>Comms</button>
@@ -1208,7 +1209,7 @@ a.contact-row:hover { background: var(--panel2); }
   const TITLES = {
     dashboard: 'Dashboard', leads: 'Leads', jobs: 'Jobs', estimates: 'Estimates',
     comms: 'Comms — drafts & outreach', campaigns: 'Neighborhood campaigns', settings: 'Settings',
-    flyer: 'Neighborhood flyer', mailer: 'PDF mailers', hailscope: 'HailScope', photos: 'Photos',
+    flyer: 'Neighborhood flyer', mailer: 'PDF mailers', hailscope: 'HailScope', estimatormap: 'Estimator Map', photos: 'Photos',
   };
 
   let current = 'dashboard';
@@ -2625,6 +2626,16 @@ a.contact-row:hover { background: var(--panel2); }
         <iframe class="embed-frame" title="HailScope"
           src="https://joshuagwatts.github.io/high-ground-hq-demo/hailscope/"></iframe>
         <div class="note">HailScope storm map — tap the map or search an address for hail history. Needs a connection.</div>`;
+    },
+  };
+
+  // ---------------- Estimator Map (roof selection -> mailers) ----------------
+  window.VIEWS.estimatormap = {
+    async render(el) {
+      el.innerHTML = `
+        <iframe class="embed-frame" title="Estimator Map"
+          src="https://joshuagwatts.github.io/high-ground-hq-demo/estimatormap/"></iframe>
+        <div class="note">Tap roofs to select them, then send the addresses to HQ — Campaigns builds the email drafts and PDF mailers. Needs a connection.</div>`;
     },
   };
 
