@@ -273,6 +273,15 @@ a.contact-row:hover { background: var(--panel2); }
 @media (max-width: 720px) {
   .draft-card .row-actions .btn, .draft-card .row-actions button, .draft-card .row-actions a.ghost { flex: 1 1 45%; text-align: center; }
 }
+.ok { color: var(--green); font-weight: 600; }
+/* ---- Mailer estimate table ---- */
+.mailer-sub { font-size: 14px; font-weight: 700; margin: 14px 0 6px; color: #111; }
+.mailer-est { width: 100%; border-collapse: collapse; font-size: 12.5px; color: #111; }
+.mailer-est th, .mailer-est td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #e2d9c8; }
+.mailer-est th { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #6b5f4c; }
+.mailer-est td:last-child, .mailer-est th:last-child { text-align: right; }
+.mailer-total { font-size: 15px; margin: 10px 0 4px; color: #111; }
+.mailer-basis { display: inline-block; font-size: 11px; font-weight: 700; background: #fdf3e0; border: 1px solid #f0a22e; color: #8a5c00; border-radius: 999px; padding: 2px 10px; margin-left: 8px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -2538,33 +2547,69 @@ a.contact-row:hover { background: var(--panel2); }
     // "What got approved at that location?" — confirm scope + total, then build one PDF mailer page per target.
     async mailerSheet(c, targets) {
       const addrs = targets.map((t) => t.address).filter(Boolean);
-      let items = [], total = 0;
+      // Estimate basis: prefer EagleView measurements, then the latest estimate.
+      let items = [], total = 0, basis = null;
       if (c.job_id) {
-        const ests = await db.list('estimates', { where: { job_id: c.job_id }, orderBy: 'created_at', order: 'desc', limit: 1 });
-        if (ests.length) {
+        const ests = await db.list('estimates', { where: { job_id: c.job_id }, orderBy: 'created_at', order: 'desc', limit: 5 });
+        let pick = null;
+        for (const e of ests) {
+          try { e._src = JSON.parse(e.measurements_json || '{}').source || ''; } catch (err) { e._src = ''; }
+          if (e._src === 'eagleview' && !pick) pick = e;
+        }
+        if (!pick && ests.length) pick = ests[0];
+        if (pick) {
           try {
-            const e = ests[0];
-            total = +(JSON.parse(e.totals_json || '{}').total || 0);
-            const raw = e.supplement_items_json || e.items_json || '[]';
+            total = +(JSON.parse(pick.totals_json || '{}').total || 0);
+            const raw = pick.supplement_items_json || pick.items_json || '[]';
             const arr = JSON.parse(raw);
             if (Array.isArray(arr)) items = arr.filter((i) => i && i.name && +i.total > 0)
-              .sort((a, b) => b.total - a.total).slice(0, 8);
+              .sort((a, b) => b.total - a.total);
+            basis = pick._src === 'eagleview' ? 'eagleview' : (pick._src === 'quick' ? 'quick' : 'file');
           } catch (err) { /* prefill stays empty, he types it in */ }
         }
       }
+      // No estimate on file: offer to build one with the auto estimator.
+      let builtItems = null, builtBasis = null;
       const scopeGuess = items.length ? items.slice(0, 3).map((i) => i.name).join(', ') : 'Full roof replacement';
+      const basisHtml = basis === 'eagleview'
+        ? `<p class="ok">✓ EagleView estimate on file — ${items.length} line items, exact measurements.</p>`
+        : basis === 'quick'
+        ? `<p class="ok">✓ Quick estimate on file — ${items.length} line items.</p>`
+        : basis === 'file'
+        ? `<p class="ok">✓ Estimate on file — ${items.length} line items.</p>`
+        : `<div class="form-grid"><div><label>Roof squares <span class="muted">(optional)</span></label>
+            <input id="ml-sq" inputmode="decimal" placeholder="28"></div>
+            <div><label>&nbsp;</label><button class="ghost small" id="ml-build" style="width:100%">Build quick estimate</button></div></div>
+          <p class="muted small">No estimate on file — enter squares to build one with our auto estimator, or leave blank for scope + total only.</p>
+          <div id="ml-built"></div>`;
       const body = openSheet('What got approved here?', `
-        <p class="muted">Confirm what was approved so every mailer quotes it right.</p>
+        <p class="muted">Confirm what was approved so every mailer quotes it right. The PDF carries the real estimate — EagleView when we have it, our auto estimator when we don't.</p>
         <label>Anchor address (the finished job nearby)</label><input id="ml-anchor" value="${h(c.job_address || '')}" placeholder="1234 NW 36th St">
         <label>Approved scope</label><input id="ml-scope" value="${h(scopeGuess)}">
         <div class="form-grid">
           <div><label>Approved total ($)</label><input id="ml-total" inputmode="decimal" value="${total || ''}" placeholder="15240"></div>
           <div><label>Mailers</label><input value="${addrs.length} addresses" disabled></div>
         </div>
-        ${items.length ? `<label style="margin-top:10px">Top line items (from the estimate)</label><div class="muted small">${items.map((i) => `${h(i.name)} — ${money(i.total)}`).join('<br>')}</div>` : '<p class="muted small" style="margin-top:10px">No estimate items found for this job — type the scope and total above.</p>'}
+        <div style="margin-top:10px">${basisHtml}</div>
+        ${items.length ? `<label style="margin-top:6px">Top line items</label><div class="muted small">${items.slice(0, 8).map((i) => `${h(i.name)} — ${money(i.total)}`).join('<br>')}</div>` : ''}
         <div class="mt row-actions"><button id="ml-go">Generate PDF mailers</button>
         <button class="ghost" id="ml-cancel">Cancel</button></div>`);
       $('#ml-cancel', body).onclick = () => closeSheet();
+      const buildBtn = $('#ml-build', body);
+      if (buildBtn) buildBtn.onclick = () => {
+        const sq = parseFloat($('#ml-sq', body).value) || 0;
+        if (!sq) { alert('Enter the roof squares.'); return; }
+        const side = Math.sqrt(sq * 100);
+        const eaves = Math.round(side * 2.4), rakes = Math.round(side * 1.6), ridge = Math.round(side * 1.1);
+        const m = { source: 'quick', roofSQ: sq, shinglesSQ: sq, totalSqFt: Math.round(sq * 100), wastePct: 10,
+          eavesLF: eaves, rakesLF: rakes, ridgesLF: ridge, hipsLF: 0, valleysLF: 0,
+          starterLF: eaves, dripEdgeLF: eaves + rakes, ridgeCapLF: ridge, pipeCount: 2 };
+        const res = SE.buildSupplement(m, { priceBook: S.priceBook || {} });
+        builtItems = res.items;
+        builtBasis = 'quick';
+        $('#ml-total', body).value = Math.round(res.total);
+        $('#ml-built', body).innerHTML = `<p class="ok">✓ Quick estimate built — ${res.items.length} line items, ${money(res.total)}.</p>`;
+      };
       $('#ml-go', body).onclick = () => {
         const anchor = $('#ml-anchor', body).value.trim();
         const scope = $('#ml-scope', body).value.trim();
@@ -2572,7 +2617,8 @@ a.contact-row:hover { background: var(--panel2); }
         if (!anchor) { alert('Enter the anchor address (the finished job nearby).'); return; }
         if (!scope) { alert('Describe the approved scope.'); return; }
         if (!tot) { alert('Enter the approved total.'); return; }
-        mailerCtx = { anchor, scope, total: tot, items: items.slice(0, 6) };
+        const useItems = builtItems || items;
+        mailerCtx = { anchor, scope, total: tot, items: useItems.slice(0, 10), basis: builtBasis || basis };
         closeSheet();
         go('mailer', c.id);
       };
@@ -2636,6 +2682,16 @@ a.contact-row:hover { background: var(--panel2); }
       const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + encodeURIComponent(site);
       const lo = Math.round(ctx.total * 0.9 / 100) * 100, hi = Math.round(ctx.total * 1.1 / 100) * 100;
       const range = ctx.total > 0 ? `${money(lo).replace(/\.00$/, '')}–${money(hi).replace(/\.00$/, '')}` : '';
+      const basisBadge = ctx.basis === 'eagleview' ? 'Measured with EagleView · exact'
+        : ctx.basis === 'quick' ? 'High Ground quick estimate'
+        : ctx.basis === 'file' ? 'Estimate on file' : '';
+      const estTable = (ctx.items && ctx.items.length) ? `
+          <p class="mailer-sub">What the project included:</p>
+          <table class="mailer-est"><tr><th>Item</th><th>Qty</th><th>Amount</th></tr>
+          ${ctx.items.slice(0, 8).map((it) => `<tr><td>${h(it.name)}</td><td>${h(String(it.qty))} ${h(it.unit || '')}</td><td>${money(it.total)}</td></tr>`).join('')}
+          </table>
+          <p class="mailer-total">Project total: <b>${money(ctx.total).replace(/\.00$/, '')}</b>${basisBadge ? `<span class="mailer-basis">${basisBadge}</span>` : ''}</p>`
+        : '';
       el.innerHTML = `
         <div class="toolbar no-print"><button class="ghost small" id="ml-back">← Back to campaign</button>
           <button id="ml-print">Print / Save PDF</button></div>
@@ -2648,9 +2704,9 @@ a.contact-row:hover { background: var(--panel2); }
           </div>
           <h1 class="flyer-head">Your neighbor's<br>roof is done.</h1>
           <p class="flyer-job">We just completed <b>${h(ctx.scope)}</b> at ${h(ctx.anchor || '')} — approved at <b>${money(ctx.total).replace(/\.00$/, '')}</b>.</p>
-          <div class="mailer-you">For your home at <b>${h(t.address)}</b>, we'd do the same:</div>
-          ${ctx.items.length ? `<ul class="flyer-list">${ctx.items.map((it) => `<li>${h(it.name)}</li>`).join('')}</ul>` : ''}
-          ${range ? `<div class="mailer-price">Estimated for your home: <b>${range}</b></div>` : ''}
+          ${estTable}
+          <div class="mailer-you">For your home at <b>${h(t.address)}</b>, same scope:</div>
+          ${range ? `<div class="mailer-price">Estimated: <b>${range}</b></div>` : ''}
           <p class="flyer-closer">Free 15-minute drone inspection with photos — no obligation. We handle the insurance paperwork if there's a claim to file.</p>
           <div class="flyer-contact">
             <div><div class="flyer-phone">${h(co.company_phone || '(405) 252-0058')}</div>
