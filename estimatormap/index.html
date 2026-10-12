@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<title>Estimator Map — High Ground HQ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<style>
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: #0b0e13; color: #e8edf4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #em-top {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+    background: #10141b; border-bottom: 1px solid #232b38; z-index: 30;
+  }
+  #em-top .brand { font-weight: 800; font-size: 16px; color: #f5b942; white-space: nowrap; }
+  #em-top .brand span.full { font-weight: 400; color: #9fb0c8; font-size: 12px; }
+  #em-search { flex: 1 1 auto; display: flex; margin: 0; min-width: 0; }
+  #em-q {
+    width: 100%; padding: 9px 12px; font-size: 15px; color: #e8edf4;
+    background: #1a2230; border: 1px solid #2c3648; border-radius: 10px; outline: none;
+  }
+  #em-q:focus { border-color: #f5b942; }
+  .tbtn {
+    flex: 0 0 auto; height: 40px; padding: 0 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+    background: #1a2230; color: #e8edf4; border: 1px solid #2c3648; border-radius: 10px; white-space: nowrap;
+  }
+  .tbtn:active { background: #232d40; }
+  #map { flex: 1 1 auto; position: relative; z-index: 1; background: #0b0e13; }
+  #em-hint {
+    position: absolute; left: 50%; transform: translateX(-50%); top: calc(60px + env(safe-area-inset-top));
+    z-index: 20; background: rgba(16,20,27,.92); border: 1px solid #2c3648; border-radius: 999px;
+    padding: 7px 16px; font-size: 13px; color: #c7d2e4; pointer-events: none; white-space: nowrap;
+  }
+  /* checkbox pins */
+  .em-sel-wrap { background: none; border: none; }
+  .em-sel-pin {
+    width: 38px; height: 38px; border-radius: 12px; background: #f5b942; color: #14100a;
+    display: flex; align-items: center; justify-content: center; gap: 2px;
+    font-weight: 800; border: 2px solid rgba(255,255,255,.4);
+    box-shadow: 0 2px 12px rgba(0,0,0,.55); cursor: pointer;
+  }
+  .em-sel-n { font-size: 14px; }
+  .em-sel-check { font-size: 14px; }
+  #em-bar {
+    position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(20,26,36,.96); border: 1px solid rgba(245,185,66,.45);
+    border-radius: 14px; padding: 10px 14px; font-size: 14px; font-weight: 700;
+  }
+  #em-bar[hidden] { display: none; }
+  #em-clear { background: none; border: 1px solid #2c3648; color: #9fb0c8; border-radius: 9px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
+  #em-send { background: #f5b942; border: none; color: #14100a; border-radius: 9px; padding: 9px 14px; font-weight: 800; cursor: pointer; }
+  #em-status {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 40;
+    background: rgba(16,20,27,.94); border: 1px solid #2c3648; border-radius: 999px;
+    padding: 7px 16px; font-size: 13px; color: #c7d2e4; pointer-events: none; white-space: nowrap;
+  }
+  #em-status:empty { display: none; }
+  @media (max-width: 720px) {
+    #em-top .brand span.full { display: none; }
+    #em-pack { display: none; }
+  }
+</style>
+</head>
+<body>
+<header id="em-top">
+  <div class="brand">▦ Estimator<span class="full"> Map — tap roofs to select</span></div>
+  <form id="em-search" autocomplete="off">
+    <input type="search" id="em-q" placeholder="Address in Oklahoma" enterkeyhint="search" aria-label="Search address" />
+  </form>
+  <button class="tbtn" id="em-pack" title="Select the 6 closest houses to the map center">6-pack</button>
+  <button class="tbtn" id="em-layers" title="Toggle street/satellite">🛰</button>
+  <button class="tbtn" id="em-locate" title="My location" aria-label="My location">◎</button>
+</header>
+<div id="map"></div>
+<div id="em-hint">Tap roofs to select them · tap a pin to remove it</div>
+<div id="em-status" role="status"></div>
+<div id="em-bar" hidden>
+  <span id="em-count">0 roofs selected</span>
+  <span style="flex:1"></span>
+  <button id="em-clear">Clear</button>
+  <button id="em-send">Send to HQ mailer →</button>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const setStatus = (m) => { const el = $("#em-status"); if (el) el.textContent = m || ""; };
+
+  const GTILES = "https://mt{s}.google.com/vt/lyrs={lyr}&hl=en&x={x}&y={y}&z={z}";
+  const map = L.map("map", { zoomControl: true }).setView([35.4676, -97.5164], 16);
+  const sat = L.tileLayer(GTILES.replace("{lyr}", "s"), { subdomains: "0123", maxZoom: 22, attribution: "© Google" });
+  const street = L.tileLayer(GTILES.replace("{lyr}", "m"), { subdomains: "0123", maxZoom: 22, attribution: "© Google" });
+  sat.addTo(map);
+  let isSat = true;
+  $("#em-layers").onclick = () => {
+    isSat = !isSat;
+    if (isSat) { map.removeLayer(street); sat.addTo(map); } else { map.removeLayer(sat); street.addTo(map); }
+  };
+
+  /* ---------- selection ---------- */
+  const selections = new Map();
+  let seq = 0;
+  const key = (lat, lon) => lat.toFixed(5) + "," + lon.toFixed(5);
+  const icon = (n) => L.divIcon({
+    className: "em-sel-wrap",
+    html: `<div class="em-sel-pin"><span class="em-sel-n">${n}</span><span class="em-sel-check">✓</span></div>`,
+    iconSize: [38, 38], iconAnchor: [19, 19],
+  });
+  function refreshBar() {
+    const n = selections.size;
+    $("#em-bar").hidden = n === 0;
+    $("#em-count").textContent = n === 1 ? "1 roof selected" : `${n} roofs selected`;
+    if (n === 0) $("#em-hint").style.display = "";
+  }
+  function removeSel(k) {
+    const s = selections.get(k);
+    if (s) { try { map.removeLayer(s.marker); } catch (e) {} selections.delete(k); }
+    refreshBar();
+  }
+  async function reverseAddr(lat, lon) {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`, { headers: { Accept: "application/json" } });
+      const d = await r.json();
+      const a = d.address || {};
+      if (a.house_number && a.road) return `${a.house_number} ${a.road}`;
+      return d.display_name ? d.display_name.split(",").slice(0, 2).join(",").trim() : "";
+    } catch (e) { return ""; }
+  }
+  function havM(lat1, lon1, lat2, lon2) {
+    const R = 6371000, t = Math.PI / 180;
+    const dLa = (lat2 - lat1) * t, dLo = (lon2 - lon1) * t;
+    const a = Math.sin(dLa / 2) ** 2 + Math.cos(lat1 * t) * Math.cos(lat2 * t) * Math.sin(dLo / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+  async function addSelection(lat, lon, addr) {
+    const k = key(lat, lon);
+    if (selections.has(k)) { removeSel(k); return; }
+    const n = ++seq;
+    const marker = L.marker([lat, lon], { icon: icon(n) }).addTo(map);
+    marker.on("click", () => removeSel(k));
+    selections.set(k, { lat, lon, addr: addr || `${lat.toFixed(5)}, ${lon.toFixed(5)}`, marker });
+    $("#em-hint").style.display = "none";
+    refreshBar();
+  }
+  map.on("click", async (e) => {
+    setStatus("Finding address…");
+    const addr = await reverseAddr(e.latlng.lat, e.latlng.lng);
+    setStatus("");
+    addSelection(e.latlng.lat, e.latlng.lng, addr);
+  });
+
+  /* ---------- 6-pack around map center ---------- */
+  $("#em-pack").onclick = async () => {
+    const c = map.getCenter();
+    setStatus("Finding the 6 closest houses…");
+    try {
+      const ql = `[out:json][timeout:25];(node["addr:housenumber"]["addr:street"](around:200,${c.lat},${c.lng});way["addr:housenumber"]["addr:street"](around:200,${c.lat},${c.lng}););out center 40;`;
+      const eps = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+      let houses = [];
+      for (const ep of eps) {
+        try {
+          const r = await fetch(ep, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(ql) });
+          const d = await r.json();
+          const out = [];
+          for (const el of (d.elements || [])) {
+            const t = el.tags || {};
+            if (t["addr:housenumber"] && t["addr:street"]) {
+              const la = el.lat || (el.center && el.center.lat), lo = el.lon || (el.center && el.center.lon);
+              if (la != null) out.push({ addr: `${t["addr:housenumber"]} ${t["addr:street"]}`, dist: havM(c.lat, c.lng, la, lo), lat: la, lon: lo });
+            }
+          }
+          if (out.length) { houses = out; break; }
+        } catch (e) { /* next endpoint */ }
+      }
+      const seen = new Map();
+      for (const h of houses) if (!seen.has(h.addr)) seen.set(h.addr, h);
+      const six = [...seen.values()].sort((a, b) => a.dist - b.dist).slice(0, 6);
+      for (const h of six) {
+        const k = key(h.lat, h.lon);
+        if (!selections.has(k)) {
+          const n = ++seq;
+          const marker = L.marker([h.lat, h.lon], { icon: icon(n) }).addTo(map);
+          marker.on("click", () => removeSel(k));
+          selections.set(k, { lat: h.lat, lon: h.lon, addr: h.addr, marker });
+        }
+      }
+      $("#em-hint").style.display = "none";
+      refreshBar();
+      setStatus(six.length ? `Selected ${six.length} houses` : "No houses found here");
+      setTimeout(() => setStatus(""), 2500);
+    } catch (e) {
+      setStatus("Map service unreachable — tap roofs instead");
+      setTimeout(() => setStatus(""), 2500);
+    }
+  };
+
+  /* ---------- search + locate ---------- */
+  $("#em-search").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const q = $("#em-q").value.trim();
+    if (!q) return;
+    setStatus("Searching…");
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ", Oklahoma")}`, { headers: { Accept: "application/json" } });
+      const d = await r.json();
+      if (d && d.length) { map.flyTo([+d[0].lat, +d[0].lon], 18, { duration: 1 }); setStatus(""); }
+      else setStatus("No match — try another address");
+    } catch (err) { setStatus("Search unreachable"); }
+    setTimeout(() => setStatus(""), 2500);
+  });
+  $("#em-locate").onclick = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => map.flyTo([p.coords.latitude, p.coords.longitude], 18, { duration: 1 }),
+      () => setStatus("Location unavailable"),
+      { timeout: 10000 }
+    );
+  };
+
+  /* ---------- send to HQ ---------- */
+  $("#em-clear").onclick = () => { for (const k of [...selections.keys()]) removeSel(k); seq = 0; };
+  $("#em-send").onclick = () => {
+    const addrs = [...selections.values()].map((s) => s.addr).filter(Boolean);
+    if (!addrs.length) return;
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: "hq-roof-selection", addresses: addrs }, "*");
+    }
+    setStatus(`Sent ${addrs.length} address${addrs.length === 1 ? "" : "es"} to HQ — open Campaigns to build the mailers.`);
+    setTimeout(() => setStatus(""), 4000);
+  };
+  refreshBar();
+})();
+</script>
+</body>
+</html>
